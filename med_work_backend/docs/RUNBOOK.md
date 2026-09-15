@@ -102,16 +102,18 @@
 服务 A 的知识库接口依赖服务 B；B 未启动时 `/api/knowledge/*` 返回 `503 MED_RAG_UNAVAILABLE`（登录与聊天不受影响）。
 
 ```powershell
+# 以下命令均在项目根目录执行，路径相对项目根目录
+
 # 终端 1：服务 B（RAG）
-cd d:\project\med-workbench\med_rag_service
-d:\project\med-workbench\med_work_backend\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8002
+cd med_rag_service
+..\med_work_backend\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8002
 
 # 终端 2：服务 A（对外）
-cd d:\project\med-workbench\med_work_backend
+cd med_work_backend
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8001
 
 # 终端 3：前端
-cd d:\project\med-workbench\med_work_frontend
+cd med_work_frontend
 npm run dev        # http://localhost:8080
 ```
 
@@ -247,12 +249,12 @@ curl http://127.0.0.1:8002/health       # status/database/embedding_loaded/vecto
 Get-NetTCPConnection -LocalPort 8001, 8002 -State Listen
 
 # 后台启动（无窗口）
-Start-Process -FilePath "d:\project\med-workbench\med_work_backend\.venv\Scripts\python.exe" `
+Start-Process -FilePath ".\med_work_backend\.venv\Scripts\python.exe" `
   -ArgumentList "-m","uvicorn","app.main:app","--host","127.0.0.1","--port","8002" `
-  -WorkingDirectory "d:\project\med-workbench\med_rag_service" -WindowStyle Hidden
+  -WorkingDirectory ".\med_rag_service" -WindowStyle Hidden
 
 # 冒烟测试服务 B（上传→检索→删除）
-cd d:\project\med-workbench\med_rag_service
+cd med_rag_service
 python test_smoke.py
 
 # 重新下载 embedding 模型

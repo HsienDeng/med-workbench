@@ -14,7 +14,7 @@
 将 `med_work_backend` 整个目录复制到新电脑（或 `git clone`），进入该目录：
 
 ```powershell
-cd d:\project\med-workbench\med_work_backend
+cd med_work_backend
 ```
 
 ### 3. 创建虚拟环境并安装依赖

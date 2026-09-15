@@ -44,7 +44,7 @@ git rm --cached <9 个日志文件>   # 从索引移除，磁盘文件保留
 ### 2.2 提交代码
 
 ```powershell
-cd d:\project\med-workbench
+cd med-workbench
 git add -A
 git status                # 确认：无 .log、无 .env、无 node_modules、无 dist
 git commit -m "feat: 病历 AI 智能导入 + 弹窗优化"
@@ -57,7 +57,7 @@ git push origin main      # origin = http://192.168.18.106/med_workbench/med_wor
 ### 2.3 本地构建验证（可选，推荐）
 
 ```powershell
-cd d:\project\med-workbench\med_work_frontend
+cd med_work_frontend
 npm run build             # 通过则说明类型与打包无误
 ```
 

@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+dist/
+build/
+.idea/
+.vscode/
+.pytest_cache/
+.mypy_cache/
+
+# Knowledge base runtime data（模型已迁至 med_rag_service/models/，此处无需忽略）
+# 上传文件与 Qdrant 向量数据（运行时生成）
+data/

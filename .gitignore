@@ -1,0 +1,60 @@
+# Python backend
+med_work_backend/__pycache__/
+med_work_backend/**/*.py[cod]
+med_work_backend/*.egg-info/
+med_work_backend/.venv/
+med_work_backend/venv/
+med_work_backend/.env
+med_work_backend/dist/
+med_work_backend/build/
+med_work_backend/.idea/
+med_work_backend/.vscode/
+med_work_backend/.pytest_cache/
+med_work_backend/.mypy_cache/
+
+# Frontend dependencies and generated files
+med_work_frontend/node_modules/
+med_work_frontend/dist/
+med_work_frontend/*.tsbuildinfo
+med_work_frontend/*.d.ts
+
+# Legacy duplicate generated during repository migration
+med_work_backend/frontend/
+
+# Workspace-only tooling
+.venv/
+.agents/
+.playwright-cli/
+skills-lock.json
+
+# 服务运行日志（运行时生成，不应提交）
+**/_uvicorn*.log
+**/_vite.log
+**/logs/*.log
+
+# 前端环境文件（保留 .env.example / .env.development 等共享模板，忽略含敏感信息的本地文件）
+med_work_frontend/.env
+med_work_frontend/.env.local
+med_work_frontend/.env.*.local
+
+# RAG 服务：.env 含真实 API 密钥与数据库密码，仅提交 .env.example
+med_rag_service/.env
+
+# RAG 服务：本地下载的向量模型（约 391MB），由 scripts/ 重新下载
+med_rag_service/models/
+
+# RAG 服务：运行时数据（Qdrant 向量库、用户上传文件）
+med_rag_service/data/qdrant/
+med_rag_service/data/uploads/
+
+# 运行时日志（补充上方的 logs/*.log 规则）
+med_work_frontend/_vite*.log
+
+# IDE / 本地工具产物
+.idea/
+.codex/
+.codebuddy/
+.vscode/
+
+# 服务器部署打包产物（本地手工上传用，不提交）
+/*.zip

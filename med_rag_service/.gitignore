@@ -1,0 +1,17 @@
+# 依赖与运行时
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 密钥与环境配置
+.env
+
+# 运行时数据（上传文件、Qdrant 向量库），仅根目录
+/data/
+
+# 服务运行日志
+/logs/
+
+# 本地向量化模型（约 400MB，由 scripts/download_embedding_model.py 下载），仅根目录，勿误伤 app/models/ 代码
+/models/

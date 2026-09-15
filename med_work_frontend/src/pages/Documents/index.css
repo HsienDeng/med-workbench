@@ -1,0 +1,144 @@
+/* ============ 文档管理页 ============ */
+
+.doc-page {
+  width: 100%;
+  box-sizing: border-box;
+  height: calc(100vh - 56px); /* 56px = 顶部 Header 高度 */
+  padding: 14px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------- 左侧菜单导航：概览 / 本地知识库 / IMA 查询 ---------- */
+.doc-layout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.doc-sider {
+  width: 198px; /* 183 + 15 */
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  /* padding: 8px 6px; */
+  overflow-y: auto;
+}
+.doc-sider .ant-menu {
+  border-inline-end: none !important;
+  background: transparent;
+}
+.doc-sider .ant-menu-item,
+.doc-sider .ant-menu-submenu-title {
+  height: 40px;
+  line-height: 40px;
+  border-radius: 8px;
+}
+
+.doc-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+.doc-content > .kpi-grid {
+  flex-shrink: 0;
+}
+.doc-content > .grid-2 {
+  flex-shrink: 0;
+}
+
+/* ---------- IMA 查询：文件夹树 + 文件列表双栏布局 ---------- */
+
+.doc-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+/* ---------- 左侧：文件夹树 ---------- */
+.doc-side {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.doc-side .ant-card-body {
+  padding: 8px 6px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.doc-side-tree {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* 叶子节点没有可展开内容，不显示展开箭头占位 */
+.doc-side-tree .ant-tree .ant-tree-switcher-leaf-open,
+.doc-side-tree .ant-tree .ant-tree-switcher-noop {
+  display: none;
+}
+/* 文件夹树字体（默认 14px 放大后 17px，再缩 1px → 16px） */
+.doc-side-tree .ant-tree {
+  font-size: 16px;
+}
+/* 树节点图标放大并垂直居中 */
+.doc-side-tree .ant-tree .ant-tree-node-content-wrapper {
+  display: inline-flex;
+  align-items: center;
+}
+.doc-side-tree .ant-tree .ant-tree-iconEle img {
+  width: 20px !important; /* 覆盖内联 1em（17px），放大图标 */
+  height: 20px !important;
+}
+
+/* ---------- 右侧：文件列表 ---------- */
+.doc-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.doc-main .ant-card-body {
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.doc-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+}
+.doc-content-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+}
+
+

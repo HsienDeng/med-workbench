@@ -1,0 +1,181 @@
+.dict-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.dict-sidebar,
+.dict-main {
+  min-width: 0;
+}
+
+.dict-sidebar .ant-card,
+.dict-main .ant-card {
+  border-color: #e6eaf1;
+  border-radius: 12px;
+}
+
+/* ---------- 左侧字典列表 ---------- */
+
+.dict-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 380px);
+  min-height: 200px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+/* 左右布局：左侧主信息两行，右侧操作区垂直居中，行高由内容驱动 */
+.dict-list-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 10px;
+  border: 1px solid #e6eaf1;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.dict-list-item:hover {
+  border-color: #b8ccef;
+  box-shadow: 0 2px 8px rgba(45, 108, 223, 0.08);
+}
+
+.dict-list-item.active {
+  border-color: #2d6cdf;
+  background: #ebf2fc;
+}
+
+.dict-list-item:focus-visible {
+  outline: 2px solid #2d6cdf;
+  outline-offset: 1px;
+}
+
+.dict-item-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* 标题行：名称 + 内置标记 + 编码 同排，单行不换行 */
+.dict-item-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dict-item-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1b2537;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dict-builtin-icon {
+  flex: none;
+  color: #0fa595;
+  font-size: 12px;
+}
+
+/* 表格中的编码列：允许换行，保持完整可读 */
+.dict-code {
+  display: inline-block;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12px;
+  color: #3e4b63;
+  background: #f1f4f9;
+  border-radius: 4px;
+  padding: 1px 6px;
+  word-break: break-all;
+}
+
+/* 列表项中的编码：紧贴名称右侧，超长截断以维持单行行高 */
+.dict-item-code {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #3e4b63;
+  background: #f1f4f9;
+  border-radius: 4px;
+  padding: 0 5px;
+}
+
+.dict-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* 紧凑元信息：缩小 antd Tag 的默认高度与内边距 */
+.dict-item-meta .ant-tag {
+  margin-inline-end: 0;
+  padding-inline: 5px;
+  font-size: 11px;
+  line-height: 16px;
+  border-radius: 3px;
+}
+
+.dict-item-count {
+  font-size: 11px;
+  color: #98a3b8;
+}
+
+/* 右侧操作区：确保每个目标 >= 24x24 CSS px（WCAG 2.2 目标尺寸） */
+.dict-item-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dict-item-actions .ant-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding-inline: 4px;
+  font-size: 12px;
+}
+
+/* ---------- 响应式 ---------- */
+
+@media (max-width: 1100px) {
+  .dict-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dict-list {
+    max-height: 320px;
+  }
+}
+
+/* 触屏设备：放大点击目标到 36px，并保持 8px 目标间距 */
+@media (pointer: coarse) {
+  .dict-item-actions .ant-btn {
+    min-width: 36px;
+    min-height: 36px;
+    padding-inline: 8px;
+  }
+}

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* 字体由 index.html 的 <link> 加载（含 preconnect），此处不再重复 @import */
 
 :root {
   --color-primary: #2d6cdf;

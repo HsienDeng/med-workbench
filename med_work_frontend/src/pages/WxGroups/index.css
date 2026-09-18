@@ -289,10 +289,6 @@
   justify-content: center;
 }
 
-.wx-chat-notice .ant-bubble-row {
-  justify-content: center;
-}
-
 .wx-chat-notice .ant-bubble-content {
   max-width: 85%;
 }
@@ -322,7 +318,7 @@
   background: rgba(22, 119, 255, 0.08);
 }
 
-.wx-room-list-scroll .ant-conversations-item-active .ant-conversations-item-label {
+.wx-room-list-scroll .ant-conversations-item-active .ant-conversations-label {
   color: #1677ff;
 }
 

@@ -188,7 +188,7 @@ export default function ImaBrowser() {
           {imaMode === 'search' && (
             <Button onClick={backToBrowse}>返回浏览</Button>
           )}
-          {kbError && <Alert type="warning" showIcon message={kbError} />}
+          {kbError && <Alert type="warning" showIcon title={kbError} />}
         </div>
         <div className="doc-content-scroll">
           <ImaFileList

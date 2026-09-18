@@ -84,7 +84,7 @@ export default function ReportExportModal({
       destroyOnHidden
       width={480}
     >
-      <Space direction="vertical" size={16} style={{ width: '100%', marginTop: 12 }}>
+      <Space orientation="vertical" size={16} style={{ width: '100%', marginTop: 12 }}>
         <div>
           <div style={{ fontSize: 13, marginBottom: 6 }}>导出格式</div>
           <Segmented
@@ -103,8 +103,7 @@ export default function ReportExportModal({
             style={{ width: '100%' }}
             placeholder="请选择患者"
             disabled={lockSelection}
-            showSearch
-            optionFilterProp="label"
+            showSearch={{ optionFilterProp: 'label' }}
             mode={lockSelection ? undefined : 'multiple'}
             value={lockSelection ? ids[0] : ids}
             onChange={(value) => setIds(lockSelection ? [value as number] : (value as number[]))}

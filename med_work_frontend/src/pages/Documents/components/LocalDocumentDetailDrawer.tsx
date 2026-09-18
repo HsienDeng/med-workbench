@@ -89,14 +89,14 @@ export default function LocalDocumentDetailDrawer({
       title={doc?.title ?? '文档详情'}
       open={docId != null}
       onClose={onClose}
-      width={760}
+      size={760}
     >
       {loading ? (
         <div style={{ textAlign: 'center', padding: 48 }}>
           <Spin />
         </div>
       ) : error ? (
-        <Alert type="error" showIcon message={error} />
+        <Alert type="error" showIcon title={error} />
       ) : !doc ? (
         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无数据" />
       ) : (
@@ -185,7 +185,7 @@ export default function LocalDocumentDetailDrawer({
           />
 
           {doc.error_message && (
-            <Alert type="error" showIcon message="索引失败原因" description={doc.error_message} />
+            <Alert type="error" showIcon title="索引失败原因" description={doc.error_message} />
           )}
 
           <div>

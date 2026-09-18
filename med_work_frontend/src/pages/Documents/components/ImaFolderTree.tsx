@@ -120,7 +120,7 @@ export default function ImaFolderTree({
   if (error) {
     return (
       <div style={style}>
-        <Alert type="error" showIcon message={error} />
+        <Alert type="error" showIcon title={error} />
       </div>
     );
   }

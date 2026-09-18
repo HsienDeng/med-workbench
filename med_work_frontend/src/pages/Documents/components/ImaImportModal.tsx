@@ -83,7 +83,7 @@ export default function ImaImportModal({ item, onClose }: ImaImportModalProps) {
           <Alert
             type="info"
             showIcon
-            message={
+            title={
               <span>
                 同步后先登记为「未索引」，需您在「上传任务」中点击
                 <strong> 开始索引 </strong>

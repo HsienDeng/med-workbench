@@ -5,6 +5,7 @@
 import { CloudDownloadOutlined, LinkOutlined } from '@ant-design/icons';
 import {
   Alert,
+  App,
   Button,
   Empty,
   List,
@@ -12,7 +13,6 @@ import {
   Spin,
   Tag,
   Tooltip,
-  message,
 } from 'antd';
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
@@ -48,6 +48,7 @@ export default function ImaFileList({
   error = null,
   style,
 }: ImaFileListProps) {
+  const { message } = App.useApp();
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detail, setDetail] = useState<ImaMediaDetailResponse | null>(null);
@@ -89,7 +90,7 @@ export default function ImaFileList({
   if (error) {
     return (
       <div style={{ ...style, padding: 16 }}>
-        <Alert type="error" showIcon message={error} />
+        <Alert type="error" showIcon title={error} />
       </div>
     );
   }
@@ -221,10 +222,10 @@ export default function ImaFileList({
       >
         {detailLoading ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
-            <Spin tip="正在获取原文…" />
+            <Spin description="正在获取原文…" />
           </div>
         ) : detail?.error ? (
-          <Alert type="error" showIcon message={detail.error} />
+          <Alert type="error" showIcon title={detail.error} />
         ) : detail?.content ? (
           <>
             {detail.truncated && (
@@ -232,7 +233,7 @@ export default function ImaFileList({
                 type="info"
                 showIcon
                 style={{ marginBottom: 10 }}
-                message="内容过长，已截断显示"
+                title="内容过长，已截断显示"
               />
             )}
             <pre

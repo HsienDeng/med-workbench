@@ -79,7 +79,7 @@ export default function KpiCard({
         <Statistic
           value={value}
           suffix={unit}
-          valueStyle={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}
+          styles={{ content: { fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 } }}
         />
         {(trend || desc) && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>

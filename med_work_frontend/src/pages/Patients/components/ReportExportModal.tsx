@@ -81,7 +81,7 @@ export default function ReportExportModal({
       onCancel={onClose}
       okText={format === 'pdf' ? '导出 PDF' : '导出 Word'}
       cancelText="取消"
-      destroyOnClose
+      destroyOnHidden
       width={480}
     >
       <Space direction="vertical" size={16} style={{ width: '100%', marginTop: 12 }}>

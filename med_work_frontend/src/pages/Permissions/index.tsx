@@ -618,7 +618,7 @@ export default function Permissions() {
         open={drawerOpen}
         onClose={closeDrawer}
         width={680}
-        destroyOnClose={false}
+        destroyOnHidden={false}
         loading={detailLoading}
         footer={
           <Space style={{ width: '100%', justifyContent: 'flex-end' }}>

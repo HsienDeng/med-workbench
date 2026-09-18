@@ -1670,7 +1670,7 @@ export default function WxGroups() {
         okText={groupModalMode === 'create' ? '添加' : '保存'}
         confirmLoading={groupSaving}
         onOk={() => void handleGroupSave()}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={groupForm} layout="vertical" style={{ marginTop: 8 }}>
           <Form.Item
@@ -1744,7 +1744,7 @@ export default function WxGroups() {
         onCancel={closeDevice}
         footer={null}
         width={420}
-        destroyOnClose
+        destroyOnHidden
       >
         {deviceBusy && !deviceQrcode && (
           <div style={{ textAlign: 'center', padding: '24px 0' }}>
@@ -1802,7 +1802,7 @@ export default function WxGroups() {
         onCancel={() => setRoomImportOpen(false)}
         footer={null}
         width={640}
-        destroyOnClose
+        destroyOnHidden
       >
         <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
           选择目标群后自动回填「第三方通道群 ID」。若列表为空，请先在右上角「设备登录」完成扫码并保持在线。
@@ -1846,7 +1846,7 @@ export default function WxGroups() {
         open={groupFetchOpen}
         onCancel={() => setGroupFetchOpen(false)}
         width={720}
-        destroyOnClose
+        destroyOnHidden
         footer={[
           <Button key="cancel" onClick={() => setGroupFetchOpen(false)}>
             取消

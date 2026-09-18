@@ -850,7 +850,7 @@ export default function PatientDetailView({ patientId, onBack }: Props) {
         onOk={handlePatientSubmit}
         confirmLoading={patientSubmitting}
         onCancel={() => setPatientModalOpen(false)}
-        destroyOnClose
+        destroyOnHidden
         width={560}
       >
         <Form form={patientForm} layout="vertical" style={{ marginTop: 12 }}>
@@ -915,7 +915,7 @@ export default function PatientDetailView({ patientId, onBack }: Props) {
         title={editingRecord ? '编辑病历记录' : '新建病历记录'}
         open={recordModalOpen}
         onCancel={() => setRecordModalOpen(false)}
-        destroyOnClose
+        destroyOnHidden
         width={820}
         footer={
           <Flex justify="space-between" align="center">

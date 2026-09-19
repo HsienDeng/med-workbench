@@ -1,17 +1,15 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Layout,
   Menu,
   Input,
   Avatar,
   Dropdown,
-  Tooltip,
   App as AntApp,
   type MenuProps,
 } from "antd";
 import {
   SearchOutlined,
-  RobotOutlined,
   DownOutlined,
   LogoutOutlined,
   UserOutlined,
@@ -32,6 +30,7 @@ type SidebarMenuItem = NonNullable<MenuProps["items"]>[number];
 export interface BasicLayoutProps {
   page: PageKey;
   onNavigate: (key: PageKey) => void;
+  onNewConversation: () => void;
   user: AuthUser;
   onLogout: () => void;
   children: React.ReactNode;
@@ -40,6 +39,7 @@ export interface BasicLayoutProps {
 export default function BasicLayout({
   page,
   onNavigate,
+  onNewConversation,
   user,
   onLogout,
   children,
@@ -51,21 +51,12 @@ export default function BasicLayout({
   const navGroups = useNavGroups(dynamicMenus, !menusLoaded);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
 
-  // AI 助手入口移至右上角导航，不在左侧侧边栏展示
-  const visibleNavGroups = useMemo(
-    () =>
-      navGroups
-        .map((group) => ({ ...group, items: group.items.filter((item) => item.key !== 'assistant') }))
-        .filter((group) => group.items.length > 0),
-    [navGroups],
-  );
-
   const handleSidebarCollapse = (nextCollapsed: boolean) => {
     setCollapsed(nextCollapsed);
     if (nextCollapsed) setOpenGroups([]);
   };
 
-  const menuItems = visibleNavGroups.flatMap<SidebarMenuItem>((group) => {
+  const menuItems = navGroups.flatMap<SidebarMenuItem>((group) => {
     const children: SidebarMenuItem[] = group.items.map((item) => ({
       key: item.key,
       icon: item.icon,
@@ -103,7 +94,7 @@ export default function BasicLayout({
           ) : null}
         </span>
       ),
-      onClick: () => onNavigate(item.key),
+      onClick: () => item.key === 'newConversation' ? onNewConversation() : onNavigate(item.key),
     }));
 
     // title 为空：无分组标题，items 直接平铺为顶级菜单项
@@ -166,7 +157,7 @@ export default function BasicLayout({
             <Menu
               mode="inline"
               items={menuItems}
-              selectedKeys={[page]}
+              selectedKeys={[page === 'assistant' ? 'newConversation' : page]}
               openKeys={openGroups}
               onOpenChange={(keys) => setOpenGroups(keys as string[])}
               className="app-sidebar-menu"
@@ -209,27 +200,6 @@ export default function BasicLayout({
             />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Tooltip title="AI 助手">
-              <div
-                className="app-header-ai"
-                style={{
-                  height: 34,
-                  padding: "0 12px",
-                  borderRadius: 8,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: colors.aiLight,
-                  color: colors.aiDark,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: "pointer",
-                }}
-                onClick={() => onNavigate('assistant')}
-              >
-                <RobotOutlined /> <span>AI 助手</span>
-              </div>
-            </Tooltip>
             <NotificationBell />
             <Dropdown menu={userMenu} placement="bottomRight">
               <div

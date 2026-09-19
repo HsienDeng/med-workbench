@@ -44,8 +44,24 @@
 }
 
 @media (max-width: 767px) {
+  .app-sidebar.ant-layout-sider-zero-width {
+    overflow: visible !important;
+  }
+
+  .app-sidebar .ant-layout-sider-zero-width-trigger {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 12;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    line-height: 40px;
+  }
+
   .app-header {
     padding-inline: 12px !important;
+    padding-inline-start: 56px !important;
     gap: 8px !important;
   }
 
@@ -53,13 +69,6 @@
     display: none !important;
   }
 
-  .app-header-ai {
-    width: 34px;
-    padding-inline: 0 !important;
-    justify-content: center;
-  }
-
-  .app-header-ai > span,
   .app-header-user-meta,
   .app-header-user-arrow {
     display: none;

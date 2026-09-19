@@ -23,12 +23,13 @@ import {
   RobotOutlined,
   AppstoreOutlined,
   WechatOutlined,
+  PlusOutlined,
 } from '@ant-design/icons';
 import { useMemo } from 'react';
 import type { DynamicMenu, PageKey } from '@/types';
 
 export interface NavItem {
-  key: PageKey;
+  key: PageKey | 'newConversation';
   icon?: React.ReactNode;
   label: string;
   phase2?: boolean;
@@ -67,6 +68,7 @@ const ICONS: Record<string, React.ComponentType> = {
   SettingOutlined,
   RobotOutlined,
   WechatOutlined,
+  PlusOutlined,
 };
 
 export const PAGE_KEYS = [
@@ -107,10 +109,11 @@ export function useNavGroups(menus: DynamicMenu[], useFallback: boolean): NavGro
         result.push(currentGroup);
         continue;
       }
-      if (!isPageKey(item.routeKey)) continue;
+      const key = item.routeKey;
+      if (!isPageKey(key)) continue;
       const IconComponent = item.icon ? ICONS[item.icon] : undefined;
       const navItem: NavItem = {
-        key: item.routeKey,
+        key: item.key === 'new-conversation' ? 'newConversation' : key,
         icon: IconComponent ? <IconComponent /> : undefined,
         label: item.title,
         phase2: item.phase2,
@@ -133,11 +136,12 @@ export function useNavGroups(menus: DynamicMenu[], useFallback: boolean): NavGro
 export const NAV_GROUPS: NavGroup[] = [
   {
     title: '',
-    items: [{ key: 'dashboard', icon: <DashboardOutlined />, label: '工作台总览' }],
+    items: [{ key: 'newConversation', icon: <PlusOutlined />, label: '新会话' }],
   },
   {
     title: '智能诊疗中心',
     items: [
+      { key: 'dashboard', icon: <DashboardOutlined />, label: '工作台总览' },
       { key: 'analysis', icon: <FileSearchOutlined />, label: 'AI 病历分析', badge: 'Beta' },
       { key: 'patients', icon: <TeamOutlined />, label: '患者档案' },
       { key: 'documents', icon: <FolderOpenOutlined />, label: '文档管理' },

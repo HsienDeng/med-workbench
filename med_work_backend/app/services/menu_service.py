@@ -11,14 +11,13 @@ from app.models import Menu, RbacUser, Role, RoleMenu, UserRole
 
 MENU_SEED: tuple[dict[str, object], ...] = (
     # 顶级页面项：无 parent_key，侧边栏直接平铺、不显示分组标题
-    {"key": "dashboard", "route_key": "dashboard", "title": "工作台总览", "icon": "DashboardOutlined", "sort_order": 10},
+    {"key": "new-conversation", "route_key": "assistant", "title": "新会话", "icon": "PlusOutlined", "sort_order": 10},
     # AI 智能分析 + 知识中心合并为「智能诊疗中心」分组
     {"key": "clinical-hub", "title": "智能诊疗中心", "icon": "AppstoreOutlined", "sort_order": 20},
+    {"key": "dashboard", "route_key": "dashboard", "title": "工作台总览", "icon": "DashboardOutlined", "parent_key": "clinical-hub", "sort_order": 20},
     {"key": "analysis", "route_key": "analysis", "title": "AI 病历分析", "icon": "FileSearchOutlined", "parent_key": "clinical-hub", "badge": "Beta", "sort_order": 21},
     {"key": "patients", "route_key": "patients", "title": "患者档案", "icon": "TeamOutlined", "parent_key": "clinical-hub", "sort_order": 22},
-    {"key": "assistant", "route_key": "assistant", "title": "AI 助手", "icon": "MessageOutlined", "parent_key": "clinical-hub", "sort_order": 24},
     {"key": "documents", "route_key": "documents", "title": "文档管理", "icon": "FolderOpenOutlined", "parent_key": "clinical-hub", "sort_order": 25},
-    {"key": "wxGroups", "route_key": "wxGroups", "title": "群管理", "icon": "WechatOutlined", "parent_key": "clinical-hub", "sort_order": 26},
     {"key": "entities", "route_key": "entities", "title": "医疗实体", "icon": "ApartmentOutlined", "parent_key": "clinical-hub", "phase2": True, "sort_order": 27},
     {"key": "retrieval", "route_key": "retrieval", "title": "检索测试", "icon": "ExperimentOutlined", "parent_key": "clinical-hub", "sort_order": 28},
     {"key": "system-settings", "title": "系统设置", "icon": "SettingOutlined", "collapsible": True, "sort_order": 30},
@@ -33,13 +32,13 @@ ALL_MENU_KEYS = frozenset(item["key"] for item in MENU_SEED)
 ROLE_MENU_SEED: dict[str, frozenset[str]] = {
     "hospital_admin": ALL_MENU_KEYS,
     "doctor": frozenset({
-        "dashboard", "clinical-hub", "analysis", "patients", "assistant",
+        "dashboard", "new-conversation", "clinical-hub", "analysis", "patients",
         "documents", "retrieval",
     }),
     "knowledge_admin": frozenset({
-        "dashboard", "clinical-hub", "documents", "retrieval",
+        "dashboard", "new-conversation", "clinical-hub", "documents", "retrieval",
     }),
-    "auditor": frozenset({"dashboard", "clinical-hub", "analysis", "audit", "retrieval"}),
+    "auditor": frozenset({"dashboard", "new-conversation", "clinical-hub", "analysis", "audit", "retrieval"}),
 }
 
 
@@ -91,8 +90,6 @@ def get_active_role_ids(db: Session, user: RbacUser) -> list[int]:
 
 def get_user_menus(db: Session, role_ids: list[int]) -> list[dict[str, object]]:
     """返回角色可见、已启用的菜单，并按层级排序。"""
-    if not role_ids:
-        return []
     granted_menus = list(
         db.scalars(
             select(Menu)
@@ -105,8 +102,13 @@ def get_user_menus(db: Session, role_ids: list[int]) -> list[dict[str, object]]:
         menu.id: menu
         for menu in db.scalars(select(Menu).where(Menu.status == "active"))
     }
-    complete_menus = {menu.id: menu for menu in granted_menus}
-    for menu in granted_menus:
+    # 对话入口对所有已登录用户开放，包括没有内置角色的用户。
+    complete_menus = {
+        menu.id: menu for menu in all_menus_by_id.values()
+        if menu.menu_key == "new-conversation"
+    }
+    complete_menus.update({menu.id: menu for menu in granted_menus})
+    for menu in list(complete_menus.values()):
         parent = all_menus_by_id.get(menu.parent_id)
         while parent is not None:
             complete_menus[parent.id] = parent

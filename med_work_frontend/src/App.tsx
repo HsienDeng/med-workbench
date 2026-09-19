@@ -65,6 +65,11 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
+  const newConversation = () => {
+    routerNavigate('/assistant', { state: { newConversation: true } });
+    window.scrollTo(0, 0);
+  };
+
   useEffect(() => {
     setUnauthorizedHandler(() => logout());
     if (!user) return;
@@ -102,7 +107,7 @@ export default function App() {
       <AntApp>
         <FeedbackBridge />
         {user ? (
-          <BasicLayout page={page} onNavigate={navigate} user={user} onLogout={handleLogout}>
+          <BasicLayout page={page} onNavigate={navigate} onNewConversation={newConversation} user={user} onLogout={handleLogout}>
             <Routes>
               <Route path="/dashboard" element={<Dashboard onNavigate={navigate} />} />
               <Route path="/analysis" element={<Analysis />} />

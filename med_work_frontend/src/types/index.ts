@@ -1012,6 +1012,12 @@ export interface DocumentDetailResponse {
 export interface ImaKnowledgeBase {
   id: string;
   name: string;
+  /** 知识库类型：个人知识库 / 共享知识库 / 我加入的订阅知识库 */
+  base_type?: string | null;
+  /** 当前账号角色：创建者 / 普通成员 等 */
+  role_type?: string | null;
+  member_count?: number;
+  content_count?: number;
 }
 
 /** IMA 知识库列表响应（configured=false 表示未配置） */

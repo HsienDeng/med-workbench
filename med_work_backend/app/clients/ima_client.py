@@ -338,6 +338,11 @@ class ImaClient:
                 {
                     "id": _first(item, "id", "knowledge_base_id", "kb_id"),
                     "name": _first(item, "kb_name", "name", "knowledge_base_name", "title"),
+                    # 知识库类型/角色：用于前端区分「个人/共享/订阅」知识库（订阅库 role_type=普通成员）
+                    "base_type": _first(item, "base_type"),
+                    "role_type": _first(item, "role_type"),
+                    "member_count": int(_first(item, "member_count") or 0),
+                    "content_count": int(_first(item, "content_count") or 0),
                 }
             )
         return [r for r in result if r["id"]]
@@ -494,7 +499,16 @@ class ImaClient:
         if not media_id:
             raise ImaApiError("media_id 不能为空")
 
-        info = await self._post("/openapi/wiki/v1/get_media_info", {"media_id": media_id})
+        try:
+            info = await self._post("/openapi/wiki/v1/get_media_info", {"media_id": media_id})
+        except ImaApiError as exc:
+            # 220030：订阅知识库的文件不对 OpenAPI 开放（平台限制，无法绕过）
+            if "220030" in str(exc):
+                raise ImaApiError(
+                    "IMA 平台限制：订阅知识库的文件不支持通过 OpenAPI 获取原文，"
+                    "请在 IMA 客户端中查看（可继续使用目录浏览与语义检索）"
+                ) from exc
+            raise
         media_type = int(info.get("media_type") or 0)
 
         # 笔记类型：直接取笔记纯文本

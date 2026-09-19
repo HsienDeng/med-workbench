@@ -9,15 +9,16 @@
  *   const agent = { request: ({ messages }, cb) => streamChat(..., cb) };
  *   const { messages, onRequest, onCancel, setMessages, loading } = useXChat({ agent });
  */
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { streamChat, type ChatCitation, type ChatMessageInput } from '@/services/chat';
+import type { ChatCitation } from '@/services/chat';
+import { patchAssistantById, requestHistory } from './chatMessageState';
 
 export interface XMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  status?: 'loading' | 'done' | 'error';
+  status?: 'loading' | 'done' | 'error' | 'stopped';
   citations?: ChatCitation[];
 }
 
@@ -43,7 +44,7 @@ export interface UseXChatConfig {
 
 export interface UseXChatResult {
   messages: XMessage[];
-  onRequest: (message: string) => void;
+  onRequest: (message: string) => boolean;
   onCancel: () => void;
   setMessages: Dispatch<SetStateAction<XMessage[]>>;
   loading: boolean;
@@ -51,77 +52,74 @@ export interface UseXChatResult {
 
 const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-const patchLastAssistant = (msgs: XMessage[], patch: Partial<XMessage>): XMessage[] => {
-  const copy = [...msgs];
-  for (let i = copy.length - 1; i >= 0; i--) {
-    if (copy[i].role === 'assistant') {
-      copy[i] = { ...copy[i], ...patch };
-      break;
-    }
-  }
-  return copy;
-};
-
 export function useXChat(config: UseXChatConfig): UseXChatResult {
   const [messages, setMessages] = useState<XMessage[]>(config.initialMessages ?? []);
   const [loading, setLoading] = useState(false);
-  const abortRef = useRef<(() => void) | null>(null);
+  const activeRequest = useRef<{ id: string; abort: () => void } | null>(null);
+
+  useEffect(() => () => activeRequest.current?.abort(), []);
 
   const onRequest = useCallback(
     (raw: string) => {
       const text = (raw ?? '').trim();
-      if (!text || loading) return;
+      if (!text || activeRequest.current) return false;
 
       const userMsg: XMessage = { id: genId(), role: 'user', content: text };
       const botMsg: XMessage = { id: genId(), role: 'assistant', content: '', status: 'loading' };
       setMessages((prev) => [...prev, userMsg, botMsg]);
 
-      const history: ChatMessageInput[] = [...messages, userMsg].map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
       setLoading(true);
       const controller = new AbortController();
-      abortRef.current = () => controller.abort();
+      activeRequest.current = { id: botMsg.id, abort: () => controller.abort() };
+      let latestContent = '';
+      const isCurrent = () => activeRequest.current?.id === botMsg.id;
+      const finish = () => {
+        activeRequest.current = null;
+        setLoading(false);
+      };
 
       const cancel = config.agent.request(
-        { message: text, messages: [...messages, userMsg] },
+        { message: text, messages: requestHistory([...messages, userMsg]) },
         {
           signal: controller.signal,
-          onUpdate: (full) => setMessages((prev) => patchLastAssistant(prev, { content: full })),
-          onCitations: (list) =>
-            setMessages((prev) => patchLastAssistant(prev, { citations: list })),
+          onUpdate: (full) => {
+            if (!isCurrent()) return;
+            latestContent = full;
+            setMessages((prev) => patchAssistantById(prev, botMsg.id, { content: full }));
+          },
+          onCitations: (list) => {
+            if (isCurrent()) setMessages((prev) => patchAssistantById(prev, botMsg.id, { citations: list }));
+          },
           onSuccess: () => {
-            setMessages((prev) => patchLastAssistant(prev, { status: 'done' }));
-            setLoading(false);
-            abortRef.current = null;
+            if (!isCurrent()) return;
+            setMessages((prev) => patchAssistantById(prev, botMsg.id, latestContent.trim()
+              ? { status: 'done' }
+              : { content: '未收到回复，请重试', status: 'error' }));
+            finish();
           },
           onError: (msg) => {
+            if (!isCurrent()) return;
             setMessages((prev) =>
-              patchLastAssistant(prev, { content: msg || '对话出错，请稍后重试', status: 'error' }),
+              patchAssistantById(prev, botMsg.id, { content: msg || '对话出错，请稍后重试', status: 'error' }),
             );
-            setLoading(false);
-            abortRef.current = null;
+            finish();
           },
         },
       );
 
-      if (typeof cancel === 'function') abortRef.current = cancel;
+      if (typeof cancel === 'function' && isCurrent()) activeRequest.current!.abort = cancel;
+      return true;
     },
-    [config.agent, loading, messages],
+    [config.agent, messages],
   );
 
   const onCancel = useCallback(() => {
-    abortRef.current?.();
-    abortRef.current = null;
+    const request = activeRequest.current;
+    if (!request) return;
+    activeRequest.current = null;
+    request.abort();
     setLoading(false);
-    setMessages((prev) =>
-      patchLastAssistant(prev, {
-        content: prev.length ? prev[prev.length - 1]?.content || '已停止生成' : '已停止生成',
-        status: 'done',
-      }),
-    );
+    setMessages((prev) => patchAssistantById(prev, request.id, { status: 'stopped' }));
   }, []);
 
   return { messages, onRequest, onCancel, setMessages, loading };

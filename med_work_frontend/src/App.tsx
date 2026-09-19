@@ -8,6 +8,7 @@ import { BasicLayout } from '@/layouts';
 import { themeConfig } from '@/theme';
 import { getPageFromPath, getPagePath, isPageKey } from '@/constants/menu';
 import { useAppStore } from '@/stores/app';
+import { useConversationStore } from '@/stores/conversations';
 import Dashboard from '@/pages/Dashboard';
 import Analysis from '@/pages/Analysis';
 import Patients from '@/pages/Patients';
@@ -15,6 +16,7 @@ import Documents from '@/pages/Documents';
 import WxGroups from '@/pages/WxGroups';
 import Assistant from '@/pages/Assistant';
 import Retrieval from '@/pages/Retrieval';
+import AiProviderManagement from '@/pages/AiProviderManagement';
 import Phase2Placeholder from '@/pages/Phase2Placeholder';
 import Dictionaries from '@/pages/Dictionaries';
 import Accounts from '@/pages/Accounts';
@@ -50,6 +52,7 @@ export default function App() {
   const login = useAppStore((state) => state.login);
   const logout = useAppStore((state) => state.logout);
   const setMenus = useAppStore((state) => state.setMenus);
+  const resetConversations = useConversationStore((state) => state.reset);
   const location = useLocation();
   const routerNavigate = useNavigate();
   const page = getPageFromPath(location.pathname) ?? 'dashboard';
@@ -65,14 +68,27 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
+  const newConversation = () => {
+    routerNavigate('/assistant', { state: { newConversation: true } });
+    window.scrollTo(0, 0);
+  };
+
+  const openConversation = (key: string) => {
+    routerNavigate('/assistant', { state: { conversationKey: key } });
+    window.scrollTo(0, 0);
+  };
+
   useEffect(() => {
-    setUnauthorizedHandler(() => logout());
+    setUnauthorizedHandler(() => {
+      resetConversations();
+      logout();
+    });
     if (!user) return;
     void getCurrentUser().catch(() => undefined);
     void getCurrentMenus()
       .then(({ items }) => setMenus(items))
       .catch(() => setMenus([]));
-  }, [logout, setMenus, user]);
+  }, [logout, resetConversations, setMenus, user]);
 
   useEffect(() => {
     if (!user) {
@@ -87,12 +103,14 @@ export default function App() {
   }, [allowedPages, defaultPage, location.pathname, menusLoaded, routerNavigate, user]);
 
   const handleLogin = (auth: Parameters<typeof login>[0]) => {
+    resetConversations();
     login(auth);
     routerNavigate('/dashboard', { replace: true });
   };
 
   const handleLogout = async () => {
     await logoutApi().catch(() => undefined);
+    resetConversations();
     logout();
     routerNavigate('/login', { replace: true });
   };
@@ -102,7 +120,14 @@ export default function App() {
       <AntApp>
         <FeedbackBridge />
         {user ? (
-          <BasicLayout page={page} onNavigate={navigate} user={user} onLogout={handleLogout}>
+          <BasicLayout
+            page={page}
+            onNavigate={navigate}
+            onNewConversation={newConversation}
+            onOpenConversation={openConversation}
+            user={user}
+            onLogout={handleLogout}
+          >
             <Routes>
               <Route path="/dashboard" element={<Dashboard onNavigate={navigate} />} />
               <Route path="/analysis" element={<Analysis />} />
@@ -115,6 +140,7 @@ export default function App() {
               <Route path="/permissions" element={<Permissions />} />
               <Route path="/audit" element={<Audit />} />
               <Route path="/retrieval" element={<Retrieval />} />
+              <Route path="/ai-connections" element={<AiProviderManagement />} />
               {PHASE2_PAGES.map((routePage) => (
                 <Route
                   key={routePage}

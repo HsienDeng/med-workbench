@@ -12,14 +12,13 @@
 - 工具 1：search_knowledge_base —— HTTP 调用 RAG 服务（服务 B）本地知识库检索；
 - 工具 2：search_ima_knowledge —— 调用 IMA 外部知识库（保留在服务 A）；
 - 工具 3：save_ima_note —— 保存 IMA 笔记。IMA 未配置时不注册工具 2/3。
-- LLM 推理沿用 kimi.get_llm，由 ai_provider 动态切换（Redis 控制，无需重启）。
+- LLM 推理沿用 llm.get_llm，由 ai_provider 从数据库动态切换（无需重启）。
 - 安全节点：safety_in 校验危险内容（命中则跳过 LLM），safety_out 追加医疗免责声明。
 
 注意：langgraph 为延迟 import（函数内），保证本模块被 import 时不依赖 langgraph 已安装。
 """
 
 import asyncio
-import json
 import logging
 import re
 import threading
@@ -31,7 +30,8 @@ from langchain_core.tools import tool
 from app.models import RbacUser
 from app.schemas.chat import ChatRequest
 from app.services import rag_proxy
-from app.clients import kimi
+from app.clients import llm
+from app.clients.llm import content_to_text, reasoning_to_text
 from app.clients.ima_client import get_ima_client
 
 logger = logging.getLogger(__name__)
@@ -65,8 +65,6 @@ _SAFETY_REPLY = (
 # 知识库工具输出中的文档引用格式：《标题》[文档#123]（相关度 0.85）
 _CITATION_RE = re.compile(r"《(.+?)》\[文档#(\d+)\]（相关度 ([\d.]+)）(.{0,200})")
 
-_CITATIONS_EVENT_PREFIX = "[CITATIONS] "
-
 
 def _collect_citations(text: str, acc: dict[int, dict]) -> None:
     """从工具输出文本中提取知识库引用（按 document_id 去重，保留最高相关度）。"""
@@ -97,11 +95,9 @@ def _tools_messages(data: Any) -> list[str]:
         return []
     texts: list[str] = []
     for m in node_state.get("messages") or []:
-        content = getattr(m, "content", "")
-        if isinstance(content, str):
-            texts.append(content)
-        elif isinstance(content, list):
-            texts.append(" ".join(str(p) for p in content))
+        text = content_to_text(getattr(m, "content", ""))
+        if text:
+            texts.append(text)
     return texts
 
 
@@ -127,10 +123,9 @@ def _append_messages(
             and isinstance(msg, AIMessageChunk)
             and not prev.tool_call_chunks
             and not msg.tool_call_chunks
-            and isinstance(prev.content, str)
-            and isinstance(msg.content, str)
         ):
-            out[-1] = AIMessageChunk(content=prev.content + msg.content)
+            # content 可能是 str，也可能是网关返回的块列表（见 llm.content_to_text）
+            out[-1] = AIMessageChunk(content=content_to_text(prev.content) + content_to_text(msg.content))
         else:
             out.append(msg)
     return out
@@ -159,7 +154,7 @@ def _sanitize_tool_history(messages: list[BaseMessage]) -> list[BaseMessage]:
     for m in messages:
         if isinstance(m, AIMessageChunk):
             m = AIMessage(
-                content=m.content,
+                content=content_to_text(m.content),
                 additional_kwargs=m.additional_kwargs,
                 id=m.id,
             )
@@ -311,7 +306,7 @@ def _make_tools(hospital_id: int) -> list:
 
 _checkpointer: Any = None
 _checkpointer_lock = asyncio.Lock()
-_graphs: dict[int, Any] = {}
+_graphs: dict[tuple[int, str | None], Any] = {}
 _graphs_lock = threading.Lock()
 
 
@@ -366,26 +361,27 @@ async def _get_checkpointer() -> Any:
     return _checkpointer
 
 
-async def _build_graph(hospital_id: int):
-    """按 hospital_id 构建/复用编译后的 Agent 图（工具闭包绑定该租户）。"""
+async def _build_graph(hospital_id: int, model: str | None = None):
+    """按 (hospital_id, model) 构建/复用编译后的 Agent 图（工具闭包绑定该租户）。"""
+    cache_key = (hospital_id, model or None)
     with _graphs_lock:
-        if hospital_id in _graphs:
-            return _graphs[hospital_id]
+        if cache_key in _graphs:
+            return _graphs[cache_key]
 
     from langgraph.graph import END, START, StateGraph
     from langgraph.prebuilt import ToolNode, tools_condition
 
     tools = _make_tools(hospital_id)
-    model = kimi.get_llm(temperature=0.3).bind_tools(tools)
+    # 部分推理模型只接受 temperature=1；get_llm 已自动处理
+    llm_client = llm.get_llm(temperature=0.3, model=model)
+    graph_model = llm_client.bind_tools(tools)
 
     async def safety_in(state: AgentState) -> AgentState:
         """输入安全校验：命中危险内容则注入安全回复并跳过 LLM。"""
         blocked: str | None = None
         for m in reversed(state["messages"]):
             if isinstance(m, HumanMessage):
-                blocked = _check_input_safety(
-                    m.content if isinstance(m.content, str) else str(m.content)
-                )
+                blocked = _check_input_safety(content_to_text(m.content))
                 break
         if blocked:
             return {"blocked": blocked, "messages": [AIMessage(content=blocked)]}
@@ -402,7 +398,7 @@ async def _build_graph(hospital_id: int):
         sys_prompt = state.get("system_prompt") or _DEFAULT_AGENT_SYSTEM_PROMPT
         messages = [SystemMessage(content=sys_prompt)] + _sanitize_tool_history(list(state["messages"]))
         full_chunk: AIMessageChunk | None = None
-        async for chunk in model.astream(messages):
+        async for chunk in graph_model.astream(messages):
             # AIMessageChunk 的 + 合并 content 与 tool_call_chunks（工具调用参数跨 chunk 累积）
             full_chunk = chunk if full_chunk is None else full_chunk + chunk
             yield {"messages": [chunk]}
@@ -416,7 +412,7 @@ async def _build_graph(hospital_id: int):
         final = ""
         for m in reversed(state["messages"]):
             if isinstance(m, AIMessage) and not m.tool_calls:
-                final = m.content if isinstance(m.content, str) else str(m.content)
+                final = content_to_text(m.content)
                 break
         text = (final + "\n\n" + MEDICAL_DISCLAIMER) if final else MEDICAL_DISCLAIMER
         return {"final_text": text}
@@ -445,7 +441,7 @@ async def _build_graph(hospital_id: int):
 
     graph = builder.compile(checkpointer=await _get_checkpointer())
     with _graphs_lock:
-        _graphs[hospital_id] = graph
+        _graphs[cache_key] = graph
     return graph
 
 
@@ -471,7 +467,7 @@ async def chat_once(req: ChatRequest, user: RbacUser) -> tuple[str, list[dict]]:
     在 langgraph 1.x 的 ainvoke 下只保留最后一次 yield，会丢失回复内容；
     故统一走 astream 聚合（生成器节点的官方支持场景）。
     """
-    graph = await _build_graph(user.hospital_id or 1)
+    graph = await _build_graph(user.hospital_id or 1, req.model)
     input_ = _build_input(req)
     cfg = _thread_config(user)
     pieces: list[str] = []
@@ -481,7 +477,7 @@ async def chat_once(req: ChatRequest, user: RbacUser) -> tuple[str, list[dict]]:
         if mode == "messages":
             chunk, meta = data
             if meta.get("langgraph_node") == "agent":
-                piece = chunk.content if isinstance(chunk.content, str) else str(chunk.content)
+                piece = content_to_text(chunk.content)
                 if piece:
                     pieces.append(piece)
         elif mode == "updates":
@@ -496,14 +492,16 @@ async def chat_once(req: ChatRequest, user: RbacUser) -> tuple[str, list[dict]]:
 
 
 async def chat_stream(req: ChatRequest, user: RbacUser):
-    """Agent 流式对话，逐片 yield 最终回复文本（含结尾免责声明）。
+    """Agent 流式对话，逐片 yield 事件 dict（路由层序列化为 SSE JSON 事件）。
 
-    兼容前端 SSE 协议：只产出纯文本增量（`data: <文本>`），
-    [DONE]/[ERROR] 由路由层封装。
-    流结束前若有知识库引用，额外产出一条 `[CITATIONS] <json>` 事件，
-    前端据此渲染引用卡片（不作为正文内容）。
+    事件类型：
+    - ``{"type": "delta", "text": ...}``    最终回复增量
+    - ``{"type": "thinking", "text": ...}`` 推理（思考）过程增量，模型/网关支持时才有
+    - ``{"type": "citations", "list": [...]}`` 知识库引用（不作为正文渲染）
+
+    [DONE]/[ERROR] 由路由层封装；免责声明文本附在回复末尾的 delta 中。
     """
-    graph = await _build_graph(user.hospital_id or 1)
+    graph = await _build_graph(user.hospital_id or 1, req.model)
     input_ = _build_input(req)
     seen = ""
     citations: dict[int, dict] = {}
@@ -513,18 +511,20 @@ async def chat_stream(req: ChatRequest, user: RbacUser):
         if mode == "messages":
             chunk, meta = data
             if meta.get("langgraph_node") == "agent":
-                piece = chunk.content if isinstance(chunk.content, str) else str(chunk.content)
+                think = reasoning_to_text(chunk.content)
+                if think:
+                    yield {"type": "thinking", "text": think}
+                piece = content_to_text(chunk.content)
                 if piece:
                     seen += piece
-                    yield piece
+                    yield {"type": "delta", "text": piece}
         elif mode == "updates":
             for text in _tools_messages(data):
                 _collect_citations(text, citations)
             node_state = data.get("safety_out") or {}
             final = node_state.get("final_text") or ""
             if final.startswith(seen) and len(final) > len(seen):
-                yield final[len(seen):]
+                yield {"type": "delta", "text": final[len(seen):]}
                 seen = final
     if citations:
-        payload = json.dumps(list(citations.values()), ensure_ascii=False)
-        yield f"{_CITATIONS_EVENT_PREFIX}{payload}"
+        yield {"type": "citations", "list": list(citations.values())}

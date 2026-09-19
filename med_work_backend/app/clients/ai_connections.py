@@ -1,41 +1,55 @@
-"""面向前端的 AI 连接状态投影。"""
+"""面向前端的 AI 连接状态投影：全部来自 med_ai_provider_configs 表。"""
+
+import logging
+
+from sqlalchemy import select
 
 from app.config import Settings
 from app.schemas.ai import AIConnection
-from app.clients.ai_provider import get_active_provider_name
+from app.models import AiProviderConfig as AiProviderConfigRow
 
+logger = logging.getLogger(__name__)
 
-_PROVIDER_META = {
-    "kimi": {"name": "Kimi", "models": ["kimi-k3", "kimi-k2.7-code"]},
-    "o98k": {"name": "O98K 中转", "models": ["gpt-5.6-sol"]},
-}
+_PROTOCOL_LABELS = {"openai": "OpenAI Compatible", "anthropic": "Anthropic"}
 
 
 def list_ai_connections(settings: Settings) -> list[AIConnection]:
-    """生成不包含明文凭据的连接列表。"""
-    active_provider_name = get_active_provider_name(settings)
+    """生成不包含明文凭据的连接列表；表为空时返回空列表。"""
+    from app.database import SessionLocal
+
+    with SessionLocal() as db:
+        rows = db.scalars(
+            select(AiProviderConfigRow)
+            .where(AiProviderConfigRow.status == "active")
+            .order_by(AiProviderConfigRow.sort_order, AiProviderConfigRow.id)
+        ).all()
+
     items: list[AIConnection] = []
-    for provider_name, meta in _PROVIDER_META.items():
-        provider = settings.ai_providers[provider_name]
-        has_api_key = provider.configured
-        enabled = has_api_key
-        if has_api_key and provider_name == active_provider_name:
+    for row in rows:
+        has_api_key = bool(row.api_key_cipher)
+        if row.is_active and has_api_key:
             status = "connected"
         elif has_api_key:
             status = "ready"
         else:
             status = "error"
+        cached = list(row.cached_models or [])
+        default_model = row.default_model or ""
         items.append(
             AIConnection(
-                id=f"{provider_name}-default",
-                provider=provider_name,
-                name=meta["name"],
-                base_url=provider.base_url,
-                active_model=provider.model,
-                models=list(dict.fromkeys([provider.model, *meta["models"]])),
+                id=f"{row.provider}-{row.id}",
+                provider=row.provider,
+                name=row.display_name,
+                protocol=_PROTOCOL_LABELS.get(row.protocol, row.protocol),
+                base_url=row.base_url,
+                active_model=default_model,
+                models=list(dict.fromkeys([default_model, *cached])),
                 status=status,
-                enabled=enabled,
+                enabled=has_api_key,
                 has_api_key=has_api_key,
+                api_key_last4=row.api_key_last4,
+                is_active=bool(row.is_active),
+                cached_models=cached,
             )
         )
     return items

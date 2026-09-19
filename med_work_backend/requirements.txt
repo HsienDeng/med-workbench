@@ -10,9 +10,15 @@ langgraph>=1.0,<2.0
 # Agent 会话记忆持久化（MySQL checkpoint；MySQL >= 8.0.19）
 langgraph-checkpoint-mysql[aiomysql]>=3.0,<4.0
 sqlalchemy>=2.0,<3.0
-pymysql>=1.1
+# PyMySQL>=1.2 删除了 aiomysql 依赖的 escape_bytes_prefixed（变为 'DO NOT IMPORT THIS!!!' 字符串），
+# 会导致 Agent checkpoint 写入报 TypeError: 'str' object is not callable，故锁定 <1.2
+pymysql>=1.1,<1.2
 redis>=5.0,<6.0
 python-multipart>=0.0.9
 # 病历文件解析（PDF / Word 文本提取）
 pypdf>=4.0,<6.0
 python-docx>=1.1,<2.0
+# 诊疗分析报告 PDF 导出（app/services/report_service.py）
+reportlab>=4.0,<5.0
+# AI 供应商 API Key 加密存储（app/clients/ai_crypto.py，AES-GCM）
+cryptography>=42.0

@@ -88,7 +88,6 @@
   overflow-y: auto;
 }
 /* 叶子节点没有可展开内容，不显示展开箭头占位 */
-.doc-side-tree .ant-tree .ant-tree-switcher-leaf-open,
 .doc-side-tree .ant-tree .ant-tree-switcher-noop {
   display: none;
 }

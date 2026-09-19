@@ -429,18 +429,19 @@ export default function Analysis() {
                 <Select
                   style={{ width: '100%' }}
                   placeholder="搜索并选择患者"
-                  showSearch
+                  showSearch={{
+                    filterOption: false,
+                    onSearch: (v) => {
+                      void searchPatients(v);
+                    },
+                  }}
                   allowClear
                   labelInValue
-                  filterOption={false}
                   loading={patientLoading}
                   notFoundContent={patientLoading ? '搜索中…' : '未找到患者'}
                   value={
                     patient ? { value: patient.id, label: `${patient.name}（${patient.patient_no}）` } : undefined
                   }
-                  onSearch={(v) => {
-                    void searchPatients(v);
-                  }}
                   onChange={(val) => {
                     const id = val?.value ?? null;
                     const p = id !== null ? patients.find((x) => x.id === id) ?? null : null;
@@ -578,7 +579,7 @@ export default function Analysis() {
 
         <Table<AnalysisRecordItem>
           rowKey="id"
-          size="middle"
+          size="medium"
           loading={loading}
           columns={columns}
           dataSource={items}

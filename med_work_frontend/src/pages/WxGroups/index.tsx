@@ -895,7 +895,7 @@ export default function WxGroups() {
         width: 240,
         ellipsis: true,
         render: (value: string, row) => (
-          <Space direction="vertical" size={0}>
+          <Space orientation="vertical" size={0}>
             <span style={{ fontWeight: 600 }}>{value || '(未命名群)'}</span>
             <Typography.Text type="secondary" style={{ fontSize: 11 }} className="mono">
               {row.chat_id}
@@ -1045,7 +1045,7 @@ export default function WxGroups() {
         key: 'content',
         ellipsis: true,
         render: (_: unknown, row) => (
-          <Space direction="vertical" size={0}>
+          <Space orientation="vertical" size={0}>
             <span>{row.title || row.content || '—'}</span>
             {row.url && (
               <Typography.Link href={row.url} target="_blank" style={{ fontSize: 11 }}>
@@ -1173,7 +1173,7 @@ export default function WxGroups() {
           className="wx-alert"
           type="warning"
           showIcon
-          message="企业微信未配置"
+          title="企业微信未配置"
           description="「同步群」需配置 WX_CORP_ID 与 WX_CONTACT_SECRET；也可点击「添加群」手动维护群列表，并在企微群里添加群机器人后填入 Webhook 地址即可直接推送。"
         />
       )}
@@ -1243,7 +1243,7 @@ export default function WxGroups() {
           locale={{
             emptyText:
               total === 0 ? (
-                <Space direction="vertical" size={4}>
+                <Space orientation="vertical" size={4}>
                   <TeamOutlined style={{ fontSize: 20, opacity: 0.4 }} />
                   <Typography.Text type="secondary">
                     暂无群，点右上角「获取群」从平台拉取，或「添加群」手动维护
@@ -1591,7 +1591,7 @@ export default function WxGroups() {
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
-          message={
+          title={
             activeGroup?.webhook_url
               ? '该群已配置 Webhook，将通过群机器人直接发送，无需群主确认'
               : activeGroup?.wecomapi_room_id
@@ -1654,12 +1654,12 @@ export default function WxGroups() {
           <Alert
             type="warning"
             showIcon
-            message="该群缺少群主信息且未配置推送通道，无法发起推送，请先配置 Webhook 或第三方通道，或同步获取群主"
+            title="该群缺少群主信息且未配置推送通道，无法发起推送，请先配置 Webhook 或第三方通道，或同步获取群主"
           />
         )}
 
         {activeGroup && !activeGroup.patient_id && (
-          <Alert type="warning" showIcon style={{ marginTop: 12 }} message="该群尚未绑定患者" />
+          <Alert type="warning" showIcon style={{ marginTop: 12 }} title="该群尚未绑定患者" />
         )}
       </Modal>
 
@@ -1670,7 +1670,7 @@ export default function WxGroups() {
         okText={groupModalMode === 'create' ? '添加' : '保存'}
         confirmLoading={groupSaving}
         onOk={() => void handleGroupSave()}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={groupForm} layout="vertical" style={{ marginTop: 8 }}>
           <Form.Item
@@ -1744,7 +1744,7 @@ export default function WxGroups() {
         onCancel={closeDevice}
         footer={null}
         width={420}
-        destroyOnClose
+        destroyOnHidden
       >
         {deviceBusy && !deviceQrcode && (
           <div style={{ textAlign: 'center', padding: '24px 0' }}>
@@ -1771,7 +1771,7 @@ export default function WxGroups() {
           <Alert
             type={deviceDone ? 'success' : deviceQrcode ? 'info' : 'error'}
             showIcon
-            message={deviceMsg}
+            title={deviceMsg}
             style={{ marginTop: 12 }}
           />
         )}
@@ -1780,7 +1780,7 @@ export default function WxGroups() {
             type="warning"
             showIcon
             style={{ marginTop: 8 }}
-            message="登录成功。请将以下配置写入后端 .env 并重启后端，通道即生效"
+            title="登录成功。请将以下配置写入后端 .env 并重启后端，通道即生效"
             description={
               <Typography.Text copyable className="mono" style={{ fontSize: 12 }}>
                 WX_WECOMAPI_GUID={deviceGuid}
@@ -1802,7 +1802,7 @@ export default function WxGroups() {
         onCancel={() => setRoomImportOpen(false)}
         footer={null}
         width={640}
-        destroyOnClose
+        destroyOnHidden
       >
         <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
           选择目标群后自动回填「第三方通道群 ID」。若列表为空，请先在右上角「设备登录」完成扫码并保持在线。
@@ -1820,7 +1820,7 @@ export default function WxGroups() {
               dataIndex: 'room_name',
               ellipsis: true,
               render: (value: string, row) => (
-                <Space direction="vertical" size={0}>
+                <Space orientation="vertical" size={0}>
                   <span>{value || '(未命名群)'}</span>
                   <Typography.Text type="secondary" style={{ fontSize: 11 }} className="mono">
                     {row.room_id}
@@ -1846,7 +1846,7 @@ export default function WxGroups() {
         open={groupFetchOpen}
         onCancel={() => setGroupFetchOpen(false)}
         width={720}
-        destroyOnClose
+        destroyOnHidden
         footer={[
           <Button key="cancel" onClick={() => setGroupFetchOpen(false)}>
             取消
@@ -1887,7 +1887,7 @@ export default function WxGroups() {
         title={`推送记录${activeGroup ? ` · ${activeGroup.name || '未命名群'}` : ''}`}
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
-        width={820}
+        size={820}
       >
         <Table<WxMessageItem>
           rowKey="id"
@@ -1899,7 +1899,7 @@ export default function WxGroups() {
           pagination={false}
           locale={{
             emptyText: (
-              <Space direction="vertical" size={4}>
+              <Space orientation="vertical" size={4}>
                 <LinkOutlined style={{ fontSize: 20, opacity: 0.4 }} />
                 <Typography.Text type="secondary">该群暂无推送记录</Typography.Text>
               </Space>

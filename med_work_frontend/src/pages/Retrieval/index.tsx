@@ -166,7 +166,7 @@ export default function Retrieval() {
       <Drawer
         title={active?.title}
         open={active !== null}
-        width={520}
+        size={520}
         onClose={() => setActive(null)}
         extra={
           active ? (

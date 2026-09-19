@@ -1,7 +1,7 @@
 """一次性冒烟：验证 AI 助手回答的知识库引用（citations）链路。
 
 1. 登录后端 A（8001）取 token；
-2. POST /api/chat/stream 提问 → 期望收尾出现 `[CITATIONS] <json>`；
+2. POST /api/chat/stream 提问 → 期望收到 `data: {"type": "citations", ...}` 事件；
 3. POST /api/chat 提问 → 期望响应体带 citations 列表。
 
 用法：.venv\\Scripts\\python.exe -X utf8 _smoke_chat.py
@@ -28,7 +28,7 @@ def main() -> int:
         print(f"[OK] 登录成功 admin")
 
         question = "阿司匹林肠溶片一次吃多少？"
-        # 1) 流式（收到 [CITATIONS] 或 [DONE] 即主动断开，避免长回复空等）
+        # 1) 流式（收到 citations 或 done 事件即主动断开，避免长回复空等）
         with c.stream(
             "POST",
             "/api/chat/stream",
@@ -44,22 +44,27 @@ def main() -> int:
                     if not line:
                         continue
                     body += line + "\n"
-                    if line.startswith("data: [CITATIONS]"):
-                        citations_raw = line[len("data: ") :]
-                    if line.startswith("data: [DONE]") or citations_raw:
-                        done = True
-                        break
+                    if line.startswith("data: "):
+                        try:
+                            event = json.loads(line[len("data: "):])
+                        except ValueError:
+                            continue
+                        if event.get("type") == "citations":
+                            citations_raw = event.get("list")
+                        if event.get("type") in ("done", "citations") or citations_raw:
+                            done = True
+                            break
             except (httpx.ReadTimeout, httpx.RemoteProtocolError):
                 pass  # 已拿到关键信息即可
             print(f"stream 提前断开 done={done}")
             if citations_raw:
-                citations = json.loads(citations_raw.replace("[CITATIONS] ", "", 1))
-                print(f"[OK] stream [CITATIONS] 事件：{len(citations)} 条引用")
+                citations = citations_raw
+                print(f"[OK] stream citations 事件：{len(citations)} 条引用")
                 for c2 in citations:
                     print(f"  - {c2['title']} ({c2['score']}) {c2['snippet'][:40]}")
             else:
                 tail = body[-300:]
-                print("[WARN] 未捕获 [CITATIONS] 事件，响应尾部：", tail)
+                print("[WARN] 未捕获 citations 事件，响应尾部：", tail)
         # 2) 非流式
         r = c.post(
             "/api/chat",

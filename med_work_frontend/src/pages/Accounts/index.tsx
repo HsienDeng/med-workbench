@@ -719,8 +719,7 @@ export default function Accounts() {
             <Select
               placeholder="全部科室"
               allowClear
-              showSearch
-              optionFilterProp="label"
+              showSearch={{ optionFilterProp: 'label' }}
               style={{ width: 180 }}
               loading={optionsLoading}
               value={filters.departmentId}
@@ -740,7 +739,7 @@ export default function Accounts() {
         <Card styles={{ body: { padding: '4px 0 0' } }}>
           <Table<AccountItem>
             rowKey="id"
-            size="middle"
+            size="medium"
             loading={loading}
             columns={columns}
             dataSource={rows}
@@ -774,7 +773,7 @@ export default function Accounts() {
         title={drawerMode === 'create' ? '新建账号' : `编辑账号 · ${editing?.real_name ?? ''}`}
         open={drawerOpen}
         onClose={closeDrawer}
-        width={540}
+        size={540}
         destroyOnHidden
         footer={
           <Flex justify="flex-end" gap={8}>
@@ -820,8 +819,7 @@ export default function Accounts() {
           <Form.Item name="department_id" label="所属科室" extra="用于区分业务归属，可稍后调整">
             <Select
               placeholder="选择科室"
-              showSearch
-              optionFilterProp="label"
+              showSearch={{ optionFilterProp: 'label' }}
               allowClear
               loading={optionsLoading}
               options={departmentFilterOptions}
@@ -913,7 +911,7 @@ export default function Accounts() {
         <Alert
           type="warning"
           showIcon
-          message="请立即保存初始密码"
+          title="请立即保存初始密码"
           description="初始密码仅展示这一次，关闭后将无法再次查看。请及时转交给对应人员，并提醒其登录后修改密码。"
           style={{ marginBottom: 16 }}
         />
@@ -990,7 +988,7 @@ export default function Accounts() {
             <Alert
               type="warning"
               showIcon
-              message="新密码已生效，仅展示这一次"
+              title="新密码已生效，仅展示这一次"
               description="该账号已要求下次登录时修改密码，请及时转告账号持有人。"
               style={{ marginBottom: 16 }}
             />
@@ -1070,7 +1068,7 @@ export default function Accounts() {
             <Alert
               type="success"
               showIcon
-              message={`成功创建 ${importResult.created} 个账号`}
+              title={`成功创建 ${importResult.created} 个账号`}
               description={
                 importResult.failed.length
                   ? `以下 ${importResult.failed.length} 行未导入，可按提示修正后重新粘贴导入。`
@@ -1082,7 +1080,7 @@ export default function Accounts() {
                 <Alert
                   type="warning"
                   showIcon
-                  message="初始密码仅本次展示，请立即转交对应人员并提醒其登录后修改密码"
+                  title="初始密码仅本次展示，请立即转交对应人员并提醒其登录后修改密码"
                 />
                 <Table<AccountImportCreated>
                   rowKey="username"

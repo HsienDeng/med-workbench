@@ -19,6 +19,10 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(description="对话历史，按时间正序")
     temperature: float = Field(default=0.3, ge=0, le=1)
     system_prompt: str | None = Field(default=None, description="覆盖默认的系统提示词")
+    model: str | None = Field(
+        default=None,
+        description="本轮使用的模型名；为空时按当前激活 provider 默认模型",
+    )
 
 
 class ChatResponse(BaseModel):

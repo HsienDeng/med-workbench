@@ -435,7 +435,7 @@ export default function Dictionaries() {
             }
             styles={{ body: { padding: 12 } }}
           >
-            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+            <Space orientation="vertical" size={8} style={{ width: '100%' }}>
               <Input.Search
                 placeholder="搜索编码或名称"
                 value={searchText}
@@ -645,7 +645,7 @@ export default function Dictionaries() {
                 </Flex>
                 <Table<DictionaryItem>
                   rowKey="id"
-                  size="middle"
+                  size="medium"
                   loading={itemLoading}
                   columns={itemColumns}
                   dataSource={items}

@@ -112,6 +112,10 @@ class ImaKnowledgeBaseItem(BaseModel):
 
     id: str
     name: str = ""
+    base_type: str | None = None
+    role_type: str | None = None
+    member_count: int = 0
+    content_count: int = 0
 
 
 class ImaKnowledgeBaseListResponse(BaseModel):

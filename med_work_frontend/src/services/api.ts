@@ -1,6 +1,11 @@
 import type {
   ActiveAIProviderResponse,
   AIConnectionResponse,
+  AiProtocol,
+  AiProviderCreateInput,
+  AiProviderItem,
+  AiProviderProbeResult,
+  AiProviderUpdateInput,
   AuthUser,
   Dictionary,
   DictionaryCategory,
@@ -222,10 +227,61 @@ export function getAiConnections(): Promise<AIConnectionResponse[]> {
   return request<AIConnectionResponse[]>('/api/ai/connections');
 }
 
-export function setActiveAiProvider(provider: string): Promise<ActiveAIProviderResponse> {
-  return request<ActiveAIProviderResponse>('/api/ai/active-provider', {
+// ==================== AI 供应商配置（管理员） ====================
+
+export function getAiProviders(): Promise<AiProviderItem[]> {
+  return request<AiProviderItem[]>('/api/ai/providers');
+}
+
+export function createAiProvider(input: AiProviderCreateInput): Promise<AiProviderItem> {
+  return request<AiProviderItem>('/api/ai/providers', { method: 'POST', body: input });
+}
+
+export function updateAiProvider(
+  provider: string,
+  input: AiProviderUpdateInput,
+): Promise<AiProviderItem> {
+  return request<AiProviderItem>(`/api/ai/providers/${encodeURIComponent(provider)}`, {
     method: 'PATCH',
-    body: { provider },
+    body: input,
+  });
+}
+
+export function deleteAiProvider(provider: string): Promise<{ deleted: string }> {
+  return request<{ deleted: string }>(`/api/ai/providers/${encodeURIComponent(provider)}`, {
+    method: 'DELETE',
+  });
+}
+
+export function activateAiProvider(provider: string): Promise<ActiveAIProviderResponse> {
+  return request<ActiveAIProviderResponse>(
+    `/api/ai/providers/${encodeURIComponent(provider)}/activate`,
+    { method: 'POST' },
+  );
+}
+
+export function testAiProvider(provider: string): Promise<AiProviderProbeResult> {
+  return request<AiProviderProbeResult>(`/api/ai/providers/${encodeURIComponent(provider)}/test`, {
+    method: 'POST',
+  });
+}
+
+export function fetchAiProviderModels(provider: string): Promise<AiProviderProbeResult> {
+  return request<AiProviderProbeResult>(
+    `/api/ai/providers/${encodeURIComponent(provider)}/models`,
+  );
+}
+
+/** 按表单草稿（协议/地址/Key）临时拉取模型列表，不落库；用于新建或改了配置未保存时。 */
+export function fetchAiProviderModelsDraft(input: {
+  protocol: AiProtocol;
+  base_url: string;
+  api_key: string;
+  default_model?: string;
+}): Promise<AiProviderProbeResult> {
+  return request<AiProviderProbeResult>('/api/ai/providers/fetch-models', {
+    method: 'POST',
+    body: JSON.stringify(input),
   });
 }
 

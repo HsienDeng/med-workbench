@@ -225,7 +225,14 @@ async def list_ima_knowledge_bases(
     except (ImaNotConfigured, ImaApiError) as exc:
         return ImaKnowledgeBaseListResponse(configured=True, items=[], error=str(exc))
     items = [
-        {"id": str(item.get("id") or ""), "name": str(item.get("name") or "")}
+        {
+            "id": str(item.get("id") or ""),
+            "name": str(item.get("name") or ""),
+            "base_type": item.get("base_type"),
+            "role_type": item.get("role_type"),
+            "member_count": int(item.get("member_count") or 0),
+            "content_count": int(item.get("content_count") or 0),
+        }
         for item in raw
         if item.get("id")
     ]

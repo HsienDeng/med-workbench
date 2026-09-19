@@ -9,7 +9,12 @@ import {
   UserOutlined,
   WechatOutlined,
 } from '@ant-design/icons';
-import { loginApi, loadRememberedAccount, DEMO_ACCOUNT } from '@/services/auth';
+import {
+  clearRememberedCredentials,
+  loadRememberedCredentials,
+  loginApi,
+  saveRememberedCredentials,
+} from '@/services/auth';
 import type { AuthUser } from '@/types';
 import './index.css';
 
@@ -36,8 +41,11 @@ const STATS = [
   { value: '全程可追溯', label: '历史结果自动保存' },
 ];
 
-/** 上次勾选"记住我"登录成功的账号：回填用户名并默认保持勾选 */
-const REMEMBERED_ACCOUNT = loadRememberedAccount();
+/** 上次勾选"记住我"登录成功的账号+密码：进入登录页自动填充，并默认勾选 */
+const REMEMBERED = loadRememberedCredentials();
+if (import.meta.env.DEV) {
+  console.log('[remember] on mount, cached =', REMEMBERED);
+}
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const { message } = AntApp.useApp();
@@ -46,8 +54,24 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
   const handleLogin = async ({ remember, ...credentials }: LoginFormValues) => {
     setLoading(true);
+    if (import.meta.env.DEV) {
+      console.log('[remember] submit', {
+        remember: Boolean(remember),
+        account: credentials.account,
+        passwordLen: (credentials.password ?? '').length,
+      });
+    }
     try {
       const { token, user } = await loginApi(credentials);
+      // 「记住我」仅在登录成功后落库；勾选则写本地，取消勾选则清掉已保存的凭据
+      if (remember) {
+        saveRememberedCredentials({
+          account: credentials.account,
+          password: credentials.password,
+        });
+      } else {
+        clearRememberedCredentials();
+      }
       message.success(`欢迎回来，${user.real_name}`);
       onLogin({ token, user, remember: Boolean(remember) });
     } catch {
@@ -142,8 +166,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             requiredMark={false}
             size="large"
             initialValues={{
-              account: REMEMBERED_ACCOUNT,
-              remember: Boolean(REMEMBERED_ACCOUNT),
+              account: REMEMBERED?.account ?? '',
+              password: REMEMBERED?.password ?? '',
+              remember: Boolean(REMEMBERED?.account),
             }}
           >
             <Form.Item
@@ -171,7 +196,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </Form.Item>
             <div className="login-options">
               <Form.Item name="remember" valuePropName="checked" noStyle>
-                <Tooltip title="勾选后关闭浏览器仍保持登录（最长 7 天）并记住账号；未勾选则关闭浏览器即需重新登录">
+                <Tooltip title="勾选后账号+密码会保存到本地浏览器，下次进入登录页自动填充；取消勾选并登录成功后会清掉已保存的账号+密码">
                   <Checkbox>记住我</Checkbox>
                 </Tooltip>
               </Form.Item>

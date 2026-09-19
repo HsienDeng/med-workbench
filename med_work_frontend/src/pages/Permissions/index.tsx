@@ -583,7 +583,7 @@ export default function Permissions() {
         <Card styles={{ body: { padding: '4px 0 0' } }}>
           <Table<RoleItem>
             rowKey="id"
-            size="middle"
+            size="medium"
             loading={loading}
             columns={columns}
             dataSource={rows}
@@ -617,8 +617,8 @@ export default function Permissions() {
         title={drawerMode === 'create' ? '新建角色' : `编辑角色 · ${editing?.role_name ?? ''}`}
         open={drawerOpen}
         onClose={closeDrawer}
-        width={680}
-        destroyOnClose={false}
+        size={680}
+        destroyOnHidden={false}
         loading={detailLoading}
         footer={
           <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
@@ -635,7 +635,7 @@ export default function Permissions() {
           <Alert
             type="info"
             showIcon
-            message="系统内置角色"
+            title="系统内置角色"
             description="系统内置角色的编码、数据范围、状态、菜单与功能权限点授权由系统统一维护，这里仅可修改角色说明。"
             style={{ marginBottom: 16 }}
           />
@@ -657,7 +657,7 @@ export default function Permissions() {
               placeholder="如 chief_nurse"
               maxLength={64}
               disabled={drawerMode === 'edit'}
-              addonBefore={
+              prefix={
                 drawerMode === 'edit' ? (
                   <Tooltip title="角色编码创建后不可修改">
                     <SafetyCertificateOutlined />

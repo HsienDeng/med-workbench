@@ -335,7 +335,7 @@ export default function Dashboard({
             columns={taskColumns}
             dataSource={recent}
             pagination={false}
-            size="middle"
+            size="medium"
             scroll={{ x: 720 }}
             loading={loading}
             locale={{
@@ -394,7 +394,7 @@ export default function Dashboard({
                       percent={docTotal ? Math.round((d.count / docTotal) * 100) : 0}
                       showInfo={false}
                       strokeColor={colors.primary}
-                      trailColor="#EEF1F6"
+                      railColor="#EEF1F6"
                       size="small"
                     />
                   </div>

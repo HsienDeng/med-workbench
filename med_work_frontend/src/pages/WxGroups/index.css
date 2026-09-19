@@ -52,17 +52,18 @@
   flex-direction: column;
 }
 
-.wx-tabs .ant-tabs-content-holder {
+/* antd v6 面板层级改名：content-holder → body-holder，content → body，tabpane → content */
+.wx-tabs .ant-tabs-body-holder {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-.wx-tabs .ant-tabs-content {
+.wx-tabs .ant-tabs-body {
   height: 100%;
 }
 
-.wx-tabs .ant-tabs-tabpane {
+.wx-tabs .ant-tabs-content {
   height: 100%;
 }
 
@@ -288,10 +289,6 @@
   justify-content: center;
 }
 
-.wx-chat-notice .ant-bubble-row {
-  justify-content: center;
-}
-
 .wx-chat-notice .ant-bubble-content {
   max-width: 85%;
 }
@@ -321,7 +318,7 @@
   background: rgba(22, 119, 255, 0.08);
 }
 
-.wx-room-list-scroll .ant-conversations-item-active .ant-conversations-item-label {
+.wx-room-list-scroll .ant-conversations-item-active .ant-conversations-label {
   color: #1677ff;
 }
 

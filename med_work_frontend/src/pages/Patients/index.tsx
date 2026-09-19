@@ -437,7 +437,7 @@ export default function Patients() {
         onOk={handleSubmit}
         confirmLoading={submitting}
         onCancel={() => setModalOpen(false)}
-        destroyOnClose
+        destroyOnHidden
         width={560}
       >
         <Form form={form} layout="vertical" style={{ marginTop: 12 }}>

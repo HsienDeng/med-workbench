@@ -1,3 +1,4 @@
+import json
 import logging
 
 from fastapi import APIRouter, Depends
@@ -21,7 +22,7 @@ from app.schemas.chat import (
     ChatRequest,
     ChatResponse,
 )
-from app.clients import kimi
+from app.clients import llm
 from app.clients.ai_provider import get_active_provider
 from app.config import settings
 from app.services import agent_service
@@ -51,19 +52,23 @@ async def chat(req: ChatRequest, user: RbacUser = Depends(get_current_user)) -> 
 async def chat_stream(req: ChatRequest, user: RbacUser = Depends(get_current_user)):
     """流式对话（LangGraph Agent，text/event-stream，需登录）。
 
-    兼容前端 SSE 协议：`data: <增量文本>`，结束 `data: [DONE]`，错误 `data: [ERROR] <信息>`；
-    若本轮引用了知识库，结束前会推送一条 `data: [CITATIONS] <json>` 事件。
+    SSE 协议：`data: <json 事件>`（json.dumps 序列化，文本内的换行/特殊字符安全），
+    事件类型：delta（正文增量）/ thinking（推理过程增量）/ citations（知识库引用）、
+    done（结束）/ error（失败）。
     """
     provider = _require_ai()
 
+    def _sse(event: dict) -> str:
+        return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+
     async def event_gen():
         try:
-            async for piece in agent_service.chat_stream(req, user):
-                yield f"data: {piece}\n\n"
+            async for event in agent_service.chat_stream(req, user):
+                yield _sse(event)
         except Exception as exc:  # noqa: BLE001
             logger.exception("chat/stream agent 调用失败")
-            yield f"data: [ERROR] {exc}\n\n"
-        yield "data: [DONE]\n\n"
+            yield _sse({"type": "error", "message": f"{exc}"})
+        yield _sse({"type": "done"})
 
     return StreamingResponse(event_gen(), media_type="text/event-stream")
 
@@ -75,7 +80,7 @@ async def analysis(
     """AI 病历分析（结构化输出，需登录，不经过 Agent）。"""
     provider = _require_ai()
     try:
-        data = await kimi.analyze_record(req.text, req.analysis_type, provider)
+        data = await llm.analyze_record(req.text, req.analysis_type, provider)
     except Exception as exc:  # noqa: BLE001
         logger.exception("analysis 调用失败")
         raise AppError(f"调用 {provider.name} 失败：{exc}", code="MED_AI_CALL_FAILED") from exc

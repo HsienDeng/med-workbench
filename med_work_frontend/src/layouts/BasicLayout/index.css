@@ -43,9 +43,69 @@
   padding-inline-start: 24px !important;
 }
 
+/* 「新会话」入口：高亮主色按钮（蓝底白字） */
+.app-sidebar-menu.ant-menu .ant-menu-item.app-sidebar-new-chat,
+.app-sidebar-menu.ant-menu .ant-menu-item.app-sidebar-new-chat:hover,
+.app-sidebar-menu.ant-menu .ant-menu-item.app-sidebar-new-chat.ant-menu-item-active,
+.app-sidebar-menu.ant-menu .ant-menu-item.app-sidebar-new-chat.ant-menu-item-selected,
+.app-sidebar-menu.ant-menu .ant-menu-item.app-sidebar-new-chat.ant-menu-item-selected:hover {
+  margin-inline: 10px;
+  border-radius: 8px;
+  background: var(--color-primary) !important;
+  background-color: var(--color-primary) !important;
+  color: #fff !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(45, 108, 223, 0.28);
+}
+
+.app-sidebar-menu.ant-menu .ant-menu-item.app-sidebar-new-chat:hover,
+.app-sidebar-menu.ant-menu .ant-menu-item.app-sidebar-new-chat.ant-menu-item-selected:hover {
+  background: var(--color-primary-hover) !important;
+  background-color: var(--color-primary-hover) !important;
+}
+
+.app-sidebar-menu.ant-menu .ant-menu-item.app-sidebar-new-chat .ant-menu-title-content,
+.app-sidebar-menu.ant-menu .ant-menu-item.app-sidebar-new-chat .anticon {
+  color: #fff !important;
+}
+
+.app-sidebar-menu.ant-menu .ant-menu-item.app-sidebar-new-chat::after {
+  display: none !important;
+  border-inline-end: none !important;
+}
+
+/* 底部固定入口（AI 服务与 API Key）：不随上方菜单滚动 */
+.app-sidebar-pinned {
+  flex-shrink: 0;
+  padding: 6px 0 8px;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  background: #fff;
+}
+
+.app-sidebar-pinned .ant-menu-item {
+  margin-inline: 10px;
+  border-radius: 8px;
+}
+
 @media (max-width: 767px) {
+  .app-sidebar.ant-layout-sider-zero-width {
+    overflow: visible !important;
+  }
+
+  .app-sidebar .ant-layout-sider-zero-width-trigger {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 12;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    line-height: 40px;
+  }
+
   .app-header {
     padding-inline: 12px !important;
+    padding-inline-start: 56px !important;
     gap: 8px !important;
   }
 
@@ -53,13 +113,6 @@
     display: none !important;
   }
 
-  .app-header-ai {
-    width: 34px;
-    padding-inline: 0 !important;
-    justify-content: center;
-  }
-
-  .app-header-ai > span,
   .app-header-user-meta,
   .app-header-user-arrow {
     display: none;

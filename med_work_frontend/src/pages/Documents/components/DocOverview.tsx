@@ -103,7 +103,7 @@ export default function DocOverview() {
                   percent={p}
                   showInfo={false}
                   strokeColor={{ '0%': colors.primary, '100%': colors.ai }}
-                  trailColor="#EEF1F6"
+                  railColor="#EEF1F6"
                   size="small"
                 />
               </div>
@@ -173,7 +173,7 @@ export default function DocOverview() {
                 percent={q.ratio}
                 showInfo={false}
                 strokeColor={q.color === 'ai' ? colors.ai : q.color === 'error' ? colors.error : colors.warning}
-                trailColor="#EEF1F6"
+                railColor="#EEF1F6"
                 size="small"
               />
             </div>

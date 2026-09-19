@@ -381,7 +381,7 @@ export default function LocalDocumentTable({
         <Table
           rowKey="id"
           loading={loading}
-          size="middle"
+          size="medium"
           columns={columns}
           dataSource={items}
           scroll={{ x: 900 }}

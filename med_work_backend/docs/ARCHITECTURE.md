@@ -5,7 +5,7 @@
 
 - 技术栈：Python 3.11+ / FastAPI / SQLAlchemy 2.0 / Pydantic v2
 - 存储：MySQL（业务数据）+ Redis（会话与路由）+ Qdrant 本地模式（向量）+ 本地磁盘（上传文件）
-- 模型：LLM 走 OpenAI 兼容协议（可切换 kimi / o98k）；Embedding 走本地 bge-base-zh-v1.5
+- 模型：LLM 供应商由数据库 `med_ai_provider_configs` 表配置（OpenAI 兼容 / Anthropic 协议，管理页维护）；Embedding 走本地 bge-base-zh-v1.5
 - 启动入口：`app/main.py` 的 `create_app()`，uvicorn 挂载 `app.main:app`，路由统一前缀 `/api`
 
 ---
@@ -54,27 +54,20 @@ schemas/    Pydantic v2（入参校验与出参序列化）
 
 `app/config.py` 中 `Settings` 为唯一配置源，字段通过环境变量或 `.env` 注入（`extra="ignore"`）。
 
-### AI 提供商路由（二选一）
+### AI 提供商路由
 
-| 值 | 说明 | 默认 base_url | 默认 model |
-|---|---|---|---|
-| `kimi` | Moonshot AI 官方 | `https://api.moonshot.cn/v1` | `kimi-k3` |
-| `o98k` | O98K 中转站 | `https://api.o98k.de/v1` | `gpt-5.6-sol` |
+供应商（base_url / API Key / 默认模型 / 当前路由）全部存储在 `med_ai_provider_configs` 表，
+由前端「AI 服务与 API Key」管理页维护（仅 `hospital_admin` 可写，操作记录审计日志）。
 
-两者均为 OpenAI 兼容协议，因此复用同一套 `ChatOpenAI` 调用代码。
-
-**运行时切换优先级**（`app/clients/ai_provider.py`）：
-1. Redis 键 `med-workbench:ai:active-provider`（持久化，无 TTL）— **优先**
-2. `.env` 的 `AI_PROVIDER`（Redis 未设置时的回退值）
-
-因此修改 Redis 后**无需重启后端**即可切换提供商；`PATCH /api/ai/active-provider`（需 `hospital_admin`）即写入该键。
+- 支持协议：OpenAI 兼容（`ChatOpenAI`）与 Anthropic（探测走 `/v1/messages`）
+- API Key 以 AES-GCM 加密落库，密钥为 `MED_API_KEY_ENC_KEY`；解密仅发生在调用瞬间
+- 当前路由 = `is_active` 单选行；`POST /api/ai/providers/{provider}/activate` 切换后**无需重启后端**
 
 ### 关键配置项
 
 | 变量 | 默认值 | 说明 |
 |---|---|---|
-| `AI_PROVIDER` | `kimi` | 默认提供商，仅允许 `kimi`/`o98k` |
-| `*_API_KEY` / `*_BASE_URL` / `*_MODEL` | — | 两组提供商各自的凭据与端点，`SecretStr` 保护 |
+| `MED_API_KEY_ENC_KEY` | 空（开发兜底） | 数据库中 API Key 的 AES-GCM 加密密钥；生产必配，配后勿变更 |
 | `IMA_OPENAPI_CLIENTID` / `IMA_OPENAPI_APIKEY` | — | IMA 集成凭证，非空即视为授权数据出网 |
 | `DB_*` | — | MySQL 连接；`database_url` 对密码做 URL 编码 |
 | `REDIS_*` | — | Redis 连接；`SESSION_TTL_HOURS` 默认 12 小时 |
@@ -140,9 +133,9 @@ query → embed_texts → Qdrant topK(limit*2，按 hospital_id 过滤)
 
 | 模块 | 职责 |
 |---|---|
-| `kimi.py` | LLM 封装（模块名沿用历史命名，实际是通用 OpenAI 兼容客户端）。提供 `get_llm()` / `chat_once()` / `chat_stream()` / `analyze_record()`；推理模型（`kimi-k3` 等）强制 `temperature=1.0` 以规避 400 |
-| `ai_provider.py` | 提供商注册、校验与运行时路由（Redis 持久化），抛 `AiProviderInvalid` / `AiProviderNotConfigured` |
-| `ai_connections.py` | 面向前端「API 连接」页的状态投影，输出 `status`(connected/ready/error)，**永不返回明文凭据** |
+| `llm.py` | LLM 封装（通用 OpenAI 兼容客户端）。提供 `get_llm()` / `chat_once()` / `chat_stream()` / `analyze_record()`；部分推理模型强制 `temperature=1.0` 以规避 400 |
+| `ai_provider.py` | 运行时路由（读取 `med_ai_provider_configs` 表，`is_active` 单选），抛 `AiProviderInvalid` / `AiProviderNotConfigured` |
+| `ai_connections.py` | 面向前端的供应商状态投影，输出 `status`(connected/ready/error)，**永不返回明文凭据** |
 | `ima_client.py` | 腾讯 IMA OpenAPI HTTP 客户端（能力详见 §5） |
 
 `app/clients/__init__.py` 统一导出四个模块。
@@ -184,7 +177,7 @@ IMA 语义检索对**长句命中率极低**（实测「肺结核治疗指南」
    按 media_id/title 去重，达到 limit 即返回
 ```
 
-实测（provider=o98k，`gpt-5.6-sol`）：
+实测（`gpt-5.6-sol`）：
 
 | 查询 | 断词结果 | 命中 |
 |---|---|---|

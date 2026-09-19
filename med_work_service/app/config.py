@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     llm_chunking: bool = True
     # 单批送入 LLM 的字符上限（防止超出模型上下文窗口）
     llm_chunk_max_input: int = 12000
-    # LLM 切分所用 OpenAI 兼容提供商（kimi / o98k 任一）
+    # LLM 切分所用 OpenAI 兼容提供商
     llm_api_key: SecretStr = SecretStr("")
     llm_base_url: str = "https://api.o98k.de/v1"
     llm_model: str = "gpt-5.6-sol"

@@ -72,24 +72,15 @@ export type PageKey =
   | 'dictionaries'
   | 'accounts'
   | 'permissions'
-  | 'audit';
+  | 'audit'
+  | 'ai-connections';
 
-// ==================== API 连接 ====================
+// ==================== AI 供应商配置 ====================
 export type ApiConnectionStatus = 'connected' | 'ready' | 'testing' | 'error' | 'disabled';
 
-export interface ApiConnection {
-  id: string;
-  provider: string;
-  name: string;
-  protocol: string;
-  baseUrl: string;
-  activeModel: string;
-  models: string[];
-  status: ApiConnectionStatus;
-  enabled: boolean;
-  hasApiKey: boolean;
-}
+export type AiProtocol = 'openai' | 'anthropic';
 
+/** 旧 /api/ai/connections 投影（Assistant 模型下拉在用，保留兼容）。 */
 export interface AIConnectionResponse {
   id: string;
   provider: string;
@@ -103,19 +94,53 @@ export interface AIConnectionResponse {
   has_api_key: boolean;
 }
 
-export interface ActiveAIProviderResponse {
-  active_provider: string;
+/** /api/ai/providers 列表项（不含明文凭据）。 */
+export interface AiProviderItem {
+  id: number;
+  provider: string;
+  display_name: string;
+  protocol: AiProtocol;
+  base_url: string;
+  default_model: string;
+  cached_models: string[];
+  is_active: boolean;
+  status: 'active' | 'disabled';
+  sort_order: number;
+  has_api_key: boolean;
+  api_key_last4: string | null;
 }
 
-export interface ApiProviderTemplate {
+export interface AiProviderCreateInput {
   provider: string;
-  name: string;
-  protocol: string;
-  baseUrl: string;
+  display_name: string;
+  protocol: AiProtocol;
+  base_url: string;
+  api_key?: string;
+  default_model?: string;
+  sort_order?: number;
+}
+
+/** 全字段可选；api_key 为 null 表示保持原值。 */
+export interface AiProviderUpdateInput {
+  display_name?: string;
+  protocol?: AiProtocol;
+  base_url?: string;
+  api_key?: string | null;
+  default_model?: string;
+  sort_order?: number;
+  status?: 'active' | 'disabled';
+}
+
+export interface AiProviderProbeResult {
+  provider: string;
+  ok: boolean;
+  latency_ms: number | null;
   models: string[];
-  defaultModel: string;
-  accent: string;
-  description: string;
+  error: string | null;
+}
+
+export interface ActiveAIProviderResponse {
+  active_provider: string;
 }
 
 // ==================== 数据字典 ====================
@@ -1012,6 +1037,12 @@ export interface DocumentDetailResponse {
 export interface ImaKnowledgeBase {
   id: string;
   name: string;
+  /** 知识库类型：个人知识库 / 共享知识库 / 我加入的订阅知识库 */
+  base_type?: string | null;
+  /** 当前账号角色：创建者 / 普通成员 等 */
+  role_type?: string | null;
+  member_count?: number;
+  content_count?: number;
 }
 
 /** IMA 知识库列表响应（configured=false 表示未配置） */

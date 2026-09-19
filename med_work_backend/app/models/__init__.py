@@ -1,5 +1,6 @@
 """ORM 模型包，统一对外导出。新增模型时在此补充导出。"""
 
+from app.models.ai_provider import AiProviderConfig
 from app.models.analysis_record import AnalysisRecord
 from app.models.audit_log import AuditLog
 from app.models.chat import ChatConversation
@@ -19,6 +20,7 @@ from app.models.wx import WxGroup, WxGroupPatient, WxMessage
 # from app.models.user import User
 
 __all__ = [
+    "AiProviderConfig",
     "AnalysisRecord",
     "AuditLog",
     "ChatConversation",

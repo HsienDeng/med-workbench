@@ -216,7 +216,7 @@ export default function RecordAiArchivePanel({
         onCancel={() => setOpen(false)}
         okText="归档"
         cancelText="取消"
-        destroyOnClose
+        destroyOnHidden
         width={560}
       >
         {candidates.length === 0 ? (

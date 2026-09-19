@@ -22,9 +22,9 @@ med_workbench/
 │       ├── models/                   # 全部 med_* 业务表（含 med_documents / med_document_chunks 元数据）
 │       ├── schemas/                  # 请求/响应模型（含知识库 DocumentOut 等，字段与服务 B 对齐）
 │       ├── clients/
-│       │   ├── ai_provider.py        # 提供商路由（kimi/o98k，Redis 动态切换）
+│       │   ├── ai_provider.py        # 提供商路由（数据库配置，管理页切换）
 │       │   ├── ai_connections.py     # 连接状态投影
-│       │   ├── kimi.py               # LLM 封装（get_llm / analyze_record）
+│       │   ├── llm.py                # LLM 封装（get_llm / analyze_record）
 │       │   └── ima_client.py         # IMA 外部集成（保留在服务 A）
 │       ├── services/
 │       │   ├── auth_service.py / menu_service.py / seed.py
@@ -226,7 +226,7 @@ services:
 
 ### `.env` 拆分要点
 
-- 服务 A（`med_work_backend/.env`）：`DB_* / REDIS_* / AI_PROVIDER / KIMI_*/O98K_* / UPLOAD_DIR(参考) / RAG_SERVICE_BASE_URL / RAG_SERVICE_TIMEOUT`；
+- 服务 A（`med_work_backend/.env`）：`DB_* / REDIS_* / MED_API_KEY_ENC_KEY / UPLOAD_DIR(参考) / RAG_SERVICE_BASE_URL / RAG_SERVICE_TIMEOUT`（AI 供应商凭据存数据库，管理页维护）；
 - 服务 B（`med_rag_service/.env`）：`DB_* / UPLOAD_DIR / QDRANT_PATH / EMBEDDING_MODEL_NAME / EMBEDDING_DEVICE / EMBEDDING_BATCH_SIZE / CHUNK_SIZE / CHUNK_OVERLAP / MAX_UPLOAD_MB / LLM_CHUNKING / LLM_CHUNK_MAX_INPUT / LLM_API_KEY / LLM_BASE_URL / LLM_MODEL / LLM_TIMEOUT`。
 
 ## 5. 迁移注意事项与回滚方案
@@ -238,7 +238,7 @@ services:
 3. **上传目录迁移**：旧文件在 `med_work_backend/data/uploads`，服务 B 的 `UPLOAD_DIR` 需指向该目录（或把文件复制过去，保持 `hospital_{id}/` 结构）。
 4. **MySQL 表结构**：`med_documents / med_document_chunks` 由服务 B 在启动时幂等 `create_all`，表结构不变，无需数据迁移。
 5. **langgraph 未安装**：本次仅写入 `requirements.txt`（按约定未执行 pip）。运行前需 `pip install -r requirements.txt`；未安装时服务 A 可启动，但 `/chat` 会报 `MED_AI_CALL_FAILED`。
-6. **LLM 切分凭证**：服务 B 的 `LLM_API_KEY`（语义切分）需独立配置，与服务 A 的 AI 提供商无关；可复用同一 O98K 密钥。
+6. **LLM 切分凭证**：服务 B 的 `LLM_API_KEY`（语义切分）需独立配置，与服务 A 的 AI 提供商（数据库管理页维护）无关。
 7. **多租户**：服务 B 所有接口强制 `hospital_id`，缺失/非法返回 `MED_MISSING_TENANT`；服务 A 转发时取 `user.hospital_id`，不会串租户。
 8. **对话记忆**：Agent 会话记忆为进程内存（`InMemorySaver`），重启服务 A 会丢失；如需持久化可后续替换为 `langgraph-checkpoint` 的 MySQL/Redis 后端。
 9. **安全**：服务 B 仅监听 `127.0.0.1`（或内网），勿暴露公网；服务 A 仍持有全部鉴权。

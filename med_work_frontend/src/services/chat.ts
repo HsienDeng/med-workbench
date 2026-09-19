@@ -2,8 +2,8 @@
  * AI 对话流式服务
  *
  * 前端不直接调用第三方大模型，而是通过后端 /api/chat/stream 转发。
- * 后端以 SSE（text/event-stream）返回增量片段：每行 `data: <片段>`，
- * 结束标识为 `data: [DONE]`，错误标识为 `data: [ERROR] <信息>`。
+ * 后端以 SSE（text/event-stream）返回 JSON 事件：每条 `data: {"type": ...}`，
+ * type 为 delta（正文增量）/ thinking（推理增量）/ citations（引用）/ done / error。
  */
 import { loadAuth } from './auth-storage';
 
@@ -92,11 +92,23 @@ export interface StreamChatOptions {
   signal?: AbortSignal;
   temperature?: number;
   systemPrompt?: string;
+  /** 本轮使用的模型名；为空时由后端按激活 provider 默认模型处理 */
+  model?: string;
   onChunk: (full: string) => void;
+  /** 推理（思考）过程增量；模型/网关支持时才有 */
+  onThinking?: (full: string) => void;
   onCitations?: (list: ChatCitation[]) => void;
   onDone: () => void;
   onError: (message: string) => void;
 }
+
+/** SSE 事件负载（后端 json.dumps 序列化） */
+type StreamEvent =
+  | { type: 'delta'; text: string }
+  | { type: 'thinking'; text: string }
+  | { type: 'citations'; list: ChatCitation[] }
+  | { type: 'done' }
+  | { type: 'error'; message?: string };
 
 export async function streamChat(
   messages: ChatMessageInput[],
@@ -116,6 +128,7 @@ export async function streamChat(
         messages,
         temperature: opts.temperature ?? 0.3,
         system_prompt: opts.systemPrompt ?? null,
+        model: opts.model ?? null,
       }),
       signal: opts.signal,
     });
@@ -146,6 +159,7 @@ export async function streamChat(
   const decoder = new TextDecoder();
   let buffer = '';
   let full = '';
+  let thinking = '';
 
   try {
     while (true) {
@@ -157,23 +171,55 @@ export async function streamChat(
       buffer = events.pop() ?? '';
 
       for (const event of events) {
-        const dataLine = event
+        // 兼容多行 data:（SSE 规范中同一事件的多个 data 行需拼接）
+        const data = event
           .split('\n')
-          .find((line) => line.startsWith('data:'));
-        if (!dataLine) continue;
-        const data = dataLine.slice(5).trim();
-        if (data === '[DONE]') {
+          .filter((line) => line.startsWith('data:'))
+          .map((line) => line.slice(5))
+          .join('\n');
+        if (!data) continue;
+        let parsed: StreamEvent | null = null;
+        try {
+          parsed = JSON.parse(data) as StreamEvent;
+        } catch {
+          parsed = null;
+        }
+        if (parsed && typeof parsed === 'object' && 'type' in parsed) {
+          if (parsed.type === 'done') {
+            opts.onDone();
+            return;
+          }
+          if (parsed.type === 'error') {
+            opts.onError(parsed.message || '对话出错，请稍后重试');
+            return;
+          }
+          if (parsed.type === 'citations') {
+            if (Array.isArray(parsed.list) && parsed.list.length) opts.onCitations?.(parsed.list);
+            continue;
+          }
+          if (parsed.type === 'thinking') {
+            thinking += parsed.text;
+            opts.onThinking?.(thinking);
+            continue;
+          }
+          if (parsed.type === 'delta') {
+            full += parsed.text;
+            opts.onChunk(full);
+          }
+          continue;
+        }
+        // 兼容旧协议（纯文本 / [DONE] / [ERROR] / [CITATIONS]）
+        if (data.trim() === '[DONE]') {
           opts.onDone();
           return;
         }
-        if (data.startsWith('[ERROR]')) {
-          opts.onError(data.slice(7).trim());
+        if (data.trim().startsWith('[ERROR]')) {
+          opts.onError(data.trim().slice(7).trim());
           return;
         }
-        if (data.startsWith('[CITATIONS]')) {
-          // 知识库引用事件：不作为正文渲染
+        if (data.trim().startsWith('[CITATIONS]')) {
           try {
-            const list = JSON.parse(data.slice('[CITATIONS]'.length).trim()) as ChatCitation[];
+            const list = JSON.parse(data.trim().slice('[CITATIONS]'.length).trim()) as ChatCitation[];
             if (Array.isArray(list) && list.length) opts.onCitations?.(list);
           } catch {
             /* 引用事件解析失败不影响正文 */

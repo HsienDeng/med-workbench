@@ -29,7 +29,7 @@ When the project gains configured tests, linting, or type checking, add them to 
 - Protected endpoints must resolve identity and authorization through shared dependencies; endpoints must not improvise token parsing.
 - Database access belongs behind SQLAlchemy sessions and typed models. Do not concatenate SQL strings.
 - Secrets are read from settings/environment only. Never write real keys, passwords, tokens, or patient identifiers to logs, fixtures, examples, or Git.
-- External Kimi failures must return controlled errors and leave enough diagnostics to distinguish missing configuration, network failure, provider rejection, and malformed response.
+- External LLM provider failures must return controlled errors and leave enough diagnostics to distinguish missing configuration, network failure, provider rejection, and malformed response.
 
 ## Data and Compatibility
 

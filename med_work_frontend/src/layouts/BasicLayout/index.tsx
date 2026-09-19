@@ -1,16 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Layout,
   Menu,
   Input,
   Avatar,
+  Button,
   Dropdown,
+  Popconfirm,
   App as AntApp,
   type MenuProps,
 } from "antd";
 import {
   SearchOutlined,
   DownOutlined,
+  DeleteOutlined,
   LogoutOutlined,
   UserOutlined,
   SettingOutlined,
@@ -18,6 +21,8 @@ import {
 import { colors } from "@/theme";
 import { useNavGroups } from "@/constants/menu";
 import { useAppStore } from "@/stores/app";
+import { useConversationStore } from "@/stores/conversations";
+import { visibleConversations } from "@/stores/conversationState";
 import type { AuthUser, PageKey } from "@/types";
 import Logo from "./components/Logo";
 import NotificationBell from "./components/NotificationBell";
@@ -31,6 +36,7 @@ export interface BasicLayoutProps {
   page: PageKey;
   onNavigate: (key: PageKey) => void;
   onNewConversation: () => void;
+  onOpenConversation: (key: string) => void;
   user: AuthUser;
   onLogout: () => void;
   children: React.ReactNode;
@@ -40,6 +46,7 @@ export default function BasicLayout({
   page,
   onNavigate,
   onNewConversation,
+  onOpenConversation,
   user,
   onLogout,
   children,
@@ -50,6 +57,35 @@ export default function BasicLayout({
   const menusLoaded = useAppStore((state) => state.menusLoaded);
   const navGroups = useNavGroups(dynamicMenus, !menusLoaded);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
+  const [deletingConversationKey, setDeletingConversationKey] = useState('');
+  const conversations = useConversationStore((state) => state.conversations);
+  const activeConversationKey = useConversationStore((state) => state.activeKey);
+  const conversationsInitialized = useConversationStore((state) => state.initialized);
+  const conversationsLoadFailed = useConversationStore((state) => state.loadFailed);
+  const loadConversations = useConversationStore((state) => state.loadConversations);
+  const selectConversation = useConversationStore((state) => state.selectConversation);
+  const removeConversation = useConversationStore((state) => state.removeConversation);
+
+  useEffect(() => {
+    void loadConversations().catch(() => message.error('对话历史加载失败'));
+  }, [loadConversations, message]);
+
+  const handleOpenConversation = (key: string) => {
+    selectConversation(key);
+    onOpenConversation(key);
+  };
+
+  const handleDeleteConversation = async (key: string) => {
+    if (deletingConversationKey) return;
+    setDeletingConversationKey(key);
+    try {
+      await removeConversation(key);
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : '删除对话失败');
+    } finally {
+      setDeletingConversationKey('');
+    }
+  };
 
   const handleSidebarCollapse = (nextCollapsed: boolean) => {
     setCollapsed(nextCollapsed);
@@ -104,6 +140,51 @@ export default function BasicLayout({
       ? { key: group.title, label: group.title, type: "submenu" as const, children }
       : { key: group.title, label: group.title, type: "group" as const, children };
   });
+  const systemMenuIndex = menuItems.findIndex(
+    (item) => item && "key" in item && item.key === "系统设置",
+  );
+  const primaryMenuItems = systemMenuIndex < 0 ? menuItems : menuItems.slice(0, systemMenuIndex);
+  const systemMenuItems = systemMenuIndex < 0 ? [] : menuItems.slice(systemMenuIndex);
+  const selectedKeys = [page === "assistant" ? "newConversation" : page];
+  const recentConversationItems: MenuProps["items"] = [
+    {
+      key: "recentConversations",
+      label: "最近对话",
+      children: conversations.length
+        ? visibleConversations(conversations).map((conversation) => ({
+            key: conversation.key,
+            label: conversation.label,
+            title: conversation.label,
+            extra: (
+              <Popconfirm
+                title="删除这段对话？"
+                description="删除后无法恢复"
+                okText="删除"
+                cancelText="取消"
+                okButtonProps={{ danger: true, loading: deletingConversationKey === conversation.key }}
+                onConfirm={() => handleDeleteConversation(conversation.key)}
+              >
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  disabled={Boolean(deletingConversationKey)}
+                  title="删除对话"
+                  aria-label={`删除对话：${conversation.label}`}
+                  onClick={(event) => event.stopPropagation()}
+                />
+              </Popconfirm>
+            ),
+          }))
+        : [{
+            key: "recentConversationsEmpty",
+            label: conversationsLoadFailed
+              ? "加载失败，请刷新重试"
+              : conversationsInitialized ? "暂无历史会话" : "正在加载会话…",
+            disabled: true,
+          }],
+    },
+  ];
 
   const userMenu = {
     items: [
@@ -156,13 +237,33 @@ export default function BasicLayout({
           >
             <Menu
               mode="inline"
-              items={menuItems}
-              selectedKeys={[page === 'assistant' ? 'newConversation' : page]}
+              items={primaryMenuItems}
+              selectedKeys={selectedKeys}
               openKeys={openGroups}
               onOpenChange={(keys) => setOpenGroups(keys as string[])}
               className="app-sidebar-menu"
               style={{ borderInlineEnd: "none", paddingTop: 8 }}
             />
+            <Menu
+              mode="inline"
+              items={recentConversationItems}
+              selectedKeys={[activeConversationKey]}
+              defaultOpenKeys={["recentConversations"]}
+              onClick={({ key }) => handleOpenConversation(key)}
+              className="app-sidebar-menu"
+              style={{ borderInlineEnd: "none" }}
+            />
+            {systemMenuItems.length ? (
+              <Menu
+                mode="inline"
+                items={systemMenuItems}
+                selectedKeys={selectedKeys}
+                openKeys={openGroups}
+                onOpenChange={(keys) => setOpenGroups(keys as string[])}
+                className="app-sidebar-menu"
+                style={{ borderInlineEnd: "none" }}
+              />
+            ) : null}
           </div>
         </div>
       </Sider>

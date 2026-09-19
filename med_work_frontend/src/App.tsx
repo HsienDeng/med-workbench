@@ -8,6 +8,7 @@ import { BasicLayout } from '@/layouts';
 import { themeConfig } from '@/theme';
 import { getPageFromPath, getPagePath, isPageKey } from '@/constants/menu';
 import { useAppStore } from '@/stores/app';
+import { useConversationStore } from '@/stores/conversations';
 import Dashboard from '@/pages/Dashboard';
 import Analysis from '@/pages/Analysis';
 import Patients from '@/pages/Patients';
@@ -50,6 +51,7 @@ export default function App() {
   const login = useAppStore((state) => state.login);
   const logout = useAppStore((state) => state.logout);
   const setMenus = useAppStore((state) => state.setMenus);
+  const resetConversations = useConversationStore((state) => state.reset);
   const location = useLocation();
   const routerNavigate = useNavigate();
   const page = getPageFromPath(location.pathname) ?? 'dashboard';
@@ -70,14 +72,22 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
+  const openConversation = (key: string) => {
+    routerNavigate('/assistant', { state: { conversationKey: key } });
+    window.scrollTo(0, 0);
+  };
+
   useEffect(() => {
-    setUnauthorizedHandler(() => logout());
+    setUnauthorizedHandler(() => {
+      resetConversations();
+      logout();
+    });
     if (!user) return;
     void getCurrentUser().catch(() => undefined);
     void getCurrentMenus()
       .then(({ items }) => setMenus(items))
       .catch(() => setMenus([]));
-  }, [logout, setMenus, user]);
+  }, [logout, resetConversations, setMenus, user]);
 
   useEffect(() => {
     if (!user) {
@@ -92,12 +102,14 @@ export default function App() {
   }, [allowedPages, defaultPage, location.pathname, menusLoaded, routerNavigate, user]);
 
   const handleLogin = (auth: Parameters<typeof login>[0]) => {
+    resetConversations();
     login(auth);
     routerNavigate('/dashboard', { replace: true });
   };
 
   const handleLogout = async () => {
     await logoutApi().catch(() => undefined);
+    resetConversations();
     logout();
     routerNavigate('/login', { replace: true });
   };
@@ -107,7 +119,14 @@ export default function App() {
       <AntApp>
         <FeedbackBridge />
         {user ? (
-          <BasicLayout page={page} onNavigate={navigate} onNewConversation={newConversation} user={user} onLogout={handleLogout}>
+          <BasicLayout
+            page={page}
+            onNavigate={navigate}
+            onNewConversation={newConversation}
+            onOpenConversation={openConversation}
+            user={user}
+            onLogout={handleLogout}
+          >
             <Routes>
               <Route path="/dashboard" element={<Dashboard onNavigate={navigate} />} />
               <Route path="/analysis" element={<Analysis />} />

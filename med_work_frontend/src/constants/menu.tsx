@@ -102,7 +102,7 @@ export function useNavGroups(menus: DynamicMenu[], useFallback: boolean): NavGro
     for (const item of menus) {
       if (!item.routeKey) {
         currentGroup = {
-          title: item.title,
+          title: item.key === 'clinical-hub' ? '' : item.title,
           items: [],
           collapsible: Boolean(item.collapsible),
         };
@@ -139,7 +139,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [{ key: 'newConversation', icon: <PlusOutlined />, label: '新会话' }],
   },
   {
-    title: '智能诊疗中心',
+    title: '',
     items: [
       { key: 'dashboard', icon: <DashboardOutlined />, label: '工作台总览' },
       { key: 'analysis', icon: <FileSearchOutlined />, label: 'AI 病历分析', badge: 'Beta' },

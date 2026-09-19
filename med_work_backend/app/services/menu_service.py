@@ -25,6 +25,9 @@ MENU_SEED: tuple[dict[str, object], ...] = (
     {"key": "accounts", "route_key": "accounts", "title": "账号管理", "icon": "UserOutlined", "parent_key": "system-settings", "sort_order": 32},
     {"key": "permissions", "route_key": "permissions", "title": "权限管理", "icon": "SafetyCertificateOutlined", "parent_key": "system-settings", "sort_order": 33},
     {"key": "audit", "route_key": "audit", "title": "审计日志", "icon": "FileProtectOutlined", "parent_key": "system-settings", "sort_order": 34},
+    # AI 服务与 API Key 管理：侧边栏底部固定入口（前端 HIDDEN + BasicLayout pinned 渲染），
+    # 菜单项仅用于路由守卫与权限下发（hospital_admin），非管理员不返回该 routeKey。
+    {"key": "ai-connections", "route_key": "ai-connections", "title": "AI 服务与 API Key", "icon": "ApiOutlined", "sort_order": 40},
 )
 
 ALL_MENU_KEYS = frozenset(item["key"] for item in MENU_SEED)

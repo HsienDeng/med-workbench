@@ -16,6 +16,7 @@ import Documents from '@/pages/Documents';
 import WxGroups from '@/pages/WxGroups';
 import Assistant from '@/pages/Assistant';
 import Retrieval from '@/pages/Retrieval';
+import AiProviderManagement from '@/pages/AiProviderManagement';
 import Phase2Placeholder from '@/pages/Phase2Placeholder';
 import Dictionaries from '@/pages/Dictionaries';
 import Accounts from '@/pages/Accounts';
@@ -139,6 +140,7 @@ export default function App() {
               <Route path="/permissions" element={<Permissions />} />
               <Route path="/audit" element={<Audit />} />
               <Route path="/retrieval" element={<Retrieval />} />
+              <Route path="/ai-connections" element={<AiProviderManagement />} />
               {PHASE2_PAGES.map((routePage) => (
                 <Route
                   key={routePage}

@@ -1,4 +1,8 @@
-"""LangChain + Kimi (Moonshot AI) 服务封装。"""
+"""LangChain LLM 服务封装：指向当前激活的 AI 提供商。
+
+供应商与凭据来自 med_ai_provider_configs 表（「AI 服务与 API Key」管理页维护），
+由 app.clients.ai_provider 动态路由，本模块与具体供应商解耦。
+"""
 
 import base64
 import io
@@ -24,7 +28,7 @@ DEFAULT_SYSTEM_PROMPT = (
 )
 
 
-# Kimi 推理模型仅支持 temperature=1，其他模型不支持会导致 400
+# 部分推理模型仅支持 temperature=1，传入其他值会导致 400
 _REASONING_MODELS = ("kimi-k3", "kimi-2.6", "kimi-k2.7", "kimi-k2.5")
 
 

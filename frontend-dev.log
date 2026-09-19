@@ -1,0 +1,16 @@
+npm notice run med-work-frontend@0.1.0 npx
+npm notice run vite --port 5173
+Error: [safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":2235,"threshold":500,"scope":"turn","targets":["D:\\project\\med-workbench\\med_work_frontend\\node_modules\\.vite\\deps_temp_badbd82a"],"targetCount":1}
+    at checkBulkDeleteGuard (c:\Users\CXYJY\.vscode\extensions\tencent-cloud.coding-copilot-4.11.37554360\out\vendor\shim\node-safe-delete-shim.cjs:273:19)
+    at tryTrash (c:\Users\CXYJY\.vscode\extensions\tencent-cloud.coding-copilot-4.11.37554360\out\vendor\shim\node-safe-delete-shim.cjs:602:5)
+    at tryRm (c:\Users\CXYJY\.vscode\extensions\tencent-cloud.coding-copilot-4.11.37554360\out\vendor\shim\node-safe-delete-shim.cjs:775:5)
+    at Object.wrappedPromisesRm [as rm] (c:\Users\CXYJY\.vscode\extensions\tencent-cloud.coding-copilot-4.11.37554360\out\vendor\shim\node-safe-delete-shim.cjs:819:15)
+    at cleanupDepsCacheStaleDirs (file:///D:/project/med-workbench/med_work_frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51306:23)
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m997[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.106.136:[1m5173[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[2m12:30:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/ProviderFormModal.tsx[22m
+[2m12:30:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/ProviderFormModal.tsx[22m

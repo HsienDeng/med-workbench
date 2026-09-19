@@ -92,6 +92,8 @@ export interface StreamChatOptions {
   signal?: AbortSignal;
   temperature?: number;
   systemPrompt?: string;
+  /** 本轮使用的模型名；为空时由后端按激活 provider 默认模型处理 */
+  model?: string;
   onChunk: (full: string) => void;
   onCitations?: (list: ChatCitation[]) => void;
   onDone: () => void;
@@ -116,6 +118,7 @@ export async function streamChat(
         messages,
         temperature: opts.temperature ?? 0.3,
         system_prompt: opts.systemPrompt ?? null,
+        model: opts.model ?? null,
       }),
       signal: opts.signal,
     });

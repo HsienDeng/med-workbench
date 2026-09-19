@@ -7,13 +7,25 @@ import {
 } from "./api";
 import {
   clearAuth,
+  clearRememberedCredentials,
   loadAuth,
   loadRememberedAccount,
+  loadRememberedCredentials,
   saveAuth,
+  saveRememberedCredentials,
+  type RememberedCredentials,
   type StoredAuth,
 } from "./auth-storage";
-export { clearAuth, loadAuth, loadRememberedAccount, saveAuth };
-export type { StoredAuth };
+export {
+  clearAuth,
+  clearRememberedCredentials,
+  loadAuth,
+  loadRememberedAccount,
+  loadRememberedCredentials,
+  saveAuth,
+  saveRememberedCredentials,
+};
+export type { RememberedCredentials, StoredAuth };
 import type { AuthResponse, LoginPayload, RegisterPayload } from "@/types";
 
 /** 演示账号（与后端种子数据一致） */

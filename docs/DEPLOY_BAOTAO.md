@@ -110,10 +110,7 @@ git clone http://192.168.18.106/med_workbench/med_workbech_backend.git med_workb
 **服务 A** `med_work_backend/.env`（参考 `med_work_backend/.env.example`）：
 
 ```ini
-AI_PROVIDER=o98k
-O98K_API_KEY=你的O98K密钥
-O98K_BASE_URL=https://api.o98k.de/v1
-O98K_MODEL=gpt-5.6-sol
+MED_API_KEY_ENC_KEY=你的随机32+位字符串   # 数据库中 API Key 的加密密钥（配后勿变更）
 
 PORT=8001
 DB_HOST=127.0.0.1
@@ -152,14 +149,15 @@ MAX_UPLOAD_MB=50
 
 LLM_CHUNKING=true
 LLM_CHUNK_MAX_INPUT=12000
-LLM_API_KEY=你的O98K密钥       # 与服务 A 的 O98K_API_KEY 同一个
+LLM_API_KEY=你的LLM密钥        # 服务 B 语义切分用（与服务 A 的供应商凭据独立）
 LLM_BASE_URL=https://api.o98k.de/v1
 LLM_MODEL=gpt-5.6-sol
 LLM_TIMEOUT=120
 ```
 
 > 若服务器无法直连 `https://api.o98k.de`（该域名在境外），AI 对话与 LLM 语义切分会失败。
-> 两个 `.env` 都需同步处理：要么给服务器配代理，要么将 `AI_PROVIDER` / `LLM_*` 换为国内可达的 kimi 配置。
+> 服务 A：给服务器配代理，或在「AI 服务与 API Key」管理页把供应商换成国内可达的服务。
+> 服务 B：给服务器配代理，或将 `LLM_*` 换为国内可达的 OpenAI 兼容服务。
 
 ### 3.6 安装后端依赖 + 下载向量模型
 
@@ -271,7 +269,7 @@ curl http://127.0.0.1:8002/health        # status ok（embedding 懒加载，首
 功能冒烟：
 
 1. 登录 → 知识库上传一篇文档（走 B 的解析/向量化链路）
-2. AI 对话发送一条消息（走 A 的 LangGraph + o98k）
+2. AI 对话发送一条消息（走 A 的 LangGraph）
 3. 病历 → 新建病历 → AI 智能导入（上传图片/PDF，走 vision 解析）
 
 ---
@@ -319,7 +317,7 @@ cp -r med_work_frontend/dist dist_backup_$(date +%Y%m%d)
 |---|---|
 | 默认密码 | `admin/Admin@123` 仅首次生效，上线后立即在系统内修改 |
 | 服务 B 不暴露公网 | 仅监听 `127.0.0.1`；宝塔防火墙只放行 80/443 |
-| o98k 网络可达性 | `api.o98k.de` 为境外域名；不可达时切换 `AI_PROVIDER=kimi`（国内可达） |
+| 境外供应商可达性 | 上游 API 域名在境外时需配代理；或在「AI 服务与 API Key」管理页切换为国内可达的供应商 |
 | 密钥安全 | `.env` 不入库；数据库/Redis 密码使用强密码并两边 `.env` 同步 |
 | 日志 | 服务日志写 `_uvicorn*.log`、`logs/`，已 .gitignore；宝塔日志切割工具可配置按天切割 |
 | 数据备份 | 宝塔计划任务：每天备份 MySQL 的 `med_workbench` 库 + `med_rag_service/data/`（上传文件与向量库） |

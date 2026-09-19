@@ -15,14 +15,15 @@ import {
   DownOutlined,
   DeleteOutlined,
   LogoutOutlined,
-  UserOutlined,
   SettingOutlined,
+  ApiOutlined,
 } from "@ant-design/icons";
 import { colors } from "@/theme";
-import { useNavGroups } from "@/constants/menu";
+import { SYSTEM_ENTRIES, useNavGroups } from "@/constants/menu";
 import { useAppStore } from "@/stores/app";
 import { useConversationStore } from "@/stores/conversations";
 import { visibleConversations } from "@/stores/conversationState";
+import { usePermission } from "@/utils/access";
 import type { AuthUser, PageKey } from "@/types";
 import Logo from "./components/Logo";
 import NotificationBell from "./components/NotificationBell";
@@ -92,10 +93,24 @@ export default function BasicLayout({
     if (nextCollapsed) setOpenGroups([]);
   };
 
+  const can = usePermission();
+  // AI 服务管理入口：菜单数据里带 ai-connections 的用户（hospital_admin）才渲染底部固定项
+  const canManageAiProviders = dynamicMenus.some((item) => item.routeKey === 'ai-connections');
+  const systemMenuItems: MenuProps["items"] = SYSTEM_ENTRIES.filter((entry) => can(entry.permission)).map(
+    (entry) => ({
+      key: entry.key,
+      icon: entry.icon,
+      label: entry.label,
+      onClick: () => onNavigate(entry.key),
+    }),
+  );
+  const showSystemMenu = systemMenuItems.length > 0;
+
   const menuItems = navGroups.flatMap<SidebarMenuItem>((group) => {
     const children: SidebarMenuItem[] = group.items.map((item) => ({
       key: item.key,
       icon: item.icon,
+      className: item.key === 'newConversation' ? 'app-sidebar-new-chat' : undefined,
       label: (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           {item.label}
@@ -140,11 +155,6 @@ export default function BasicLayout({
       ? { key: group.title, label: group.title, type: "submenu" as const, children }
       : { key: group.title, label: group.title, type: "group" as const, children };
   });
-  const systemMenuIndex = menuItems.findIndex(
-    (item) => item && "key" in item && item.key === "系统设置",
-  );
-  const primaryMenuItems = systemMenuIndex < 0 ? menuItems : menuItems.slice(0, systemMenuIndex);
-  const systemMenuItems = systemMenuIndex < 0 ? [] : menuItems.slice(systemMenuIndex);
   const selectedKeys = [page === "assistant" ? "newConversation" : page];
   const recentConversationItems: MenuProps["items"] = [
     {
@@ -188,9 +198,6 @@ export default function BasicLayout({
 
   const userMenu = {
     items: [
-      { key: "profile", icon: <UserOutlined />, label: "个人中心" },
-      { key: "pref", icon: <SettingOutlined />, label: "偏好设置" },
-      { type: "divider" as const },
       {
         key: "logout",
         icon: <LogoutOutlined />,
@@ -237,7 +244,7 @@ export default function BasicLayout({
           >
             <Menu
               mode="inline"
-              items={primaryMenuItems}
+              items={menuItems}
               selectedKeys={selectedKeys}
               openKeys={openGroups}
               onOpenChange={(keys) => setOpenGroups(keys as string[])}
@@ -253,18 +260,25 @@ export default function BasicLayout({
               className="app-sidebar-menu"
               style={{ borderInlineEnd: "none" }}
             />
-            {systemMenuItems.length ? (
+          </div>
+          {canManageAiProviders ? (
+            <div className="app-sidebar-pinned">
               <Menu
                 mode="inline"
-                items={systemMenuItems}
-                selectedKeys={selectedKeys}
-                openKeys={openGroups}
-                onOpenChange={(keys) => setOpenGroups(keys as string[])}
+                items={[
+                  {
+                    key: "ai-connections",
+                    icon: <ApiOutlined />,
+                    label: "AI 服务与 API Key",
+                  },
+                ]}
+                selectedKeys={page === "ai-connections" ? ["ai-connections"] : []}
+                onClick={() => onNavigate("ai-connections")}
                 className="app-sidebar-menu"
                 style={{ borderInlineEnd: "none" }}
               />
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
       </Sider>
       <Layout>
@@ -302,6 +316,21 @@ export default function BasicLayout({
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <NotificationBell />
+            {showSystemMenu ? (
+              <Dropdown
+                menu={{ items: systemMenuItems }}
+                placement="bottomRight"
+                trigger={["click"]}
+              >
+                <Button
+                  type="text"
+                  shape="circle"
+                  icon={<SettingOutlined style={{ fontSize: 18 }} />}
+                  aria-label="系统设置"
+                  title="系统设置"
+                />
+              </Dropdown>
+            ) : null}
             <Dropdown menu={userMenu} placement="bottomRight">
               <div
                 style={{

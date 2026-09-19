@@ -23,7 +23,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.config import settings
 from app.exceptions import ImaApiError, ImaNotConfigured
-from app.clients import kimi
+from app.clients import llm
 
 logger = logging.getLogger(__name__)
 
@@ -112,8 +112,8 @@ async def extract_search_keywords(query: str) -> list[str]:
         return [query]
 
     try:
-        llm = kimi.get_llm(temperature=0.1)
-        resp = await llm.ainvoke(
+        llm_client = llm.get_llm(temperature=0.1)
+        resp = await llm_client.ainvoke(
             [SystemMessage(content=_KEYWORD_SYSTEM_PROMPT), HumanMessage(content=query)]
         )
         raw = resp.content if isinstance(resp.content, str) else str(resp.content)

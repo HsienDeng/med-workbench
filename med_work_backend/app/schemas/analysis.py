@@ -26,7 +26,7 @@ class AnalysisAttentionItem(BaseModel):
 
 
 class AnalysisResult(BaseModel):
-    """病历分析结构化结果（与 app/clients/kimi.py 提示词契约一致）。"""
+    """病历分析结构化结果（与 app/clients/llm.py 提示词契约一致）。"""
 
     summary: dict[str, str] = Field(default_factory=dict, description="病情要点，如 主诉/现病史/初步诊断")
     attention: list[AnalysisAttentionItem] = Field(default_factory=list, description="AI 关注点")

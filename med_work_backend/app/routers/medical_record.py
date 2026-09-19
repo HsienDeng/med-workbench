@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, File, Request, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.clients.kimi import (
+from app.clients.llm import (
     extract_pdf_text,
     extract_word_text,
     parse_record_image,

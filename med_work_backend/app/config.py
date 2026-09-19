@@ -1,6 +1,6 @@
 from urllib.parse import quote_plus
 
-from pydantic import SecretStr, field_validator
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,18 +25,12 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     port: int = 8001
 
-    # OpenAI 兼容模型路由；默认激活项必须已在 providers 中注册。
-    ai_provider: str = "kimi"
+    # AI 供应商配置已全部迁移至数据库（med_ai_provider_configs 表），
+    # 由「AI 服务与 API Key」管理页维护；此处不再提供 .env 硬编码入口。
 
-    # Kimi (Moonshot AI)
-    kimi_api_key: SecretStr = SecretStr("")
-    kimi_base_url: str = "https://api.moonshot.cn/v1"
-    kimi_model: str = "kimi-k3"
-
-    # O98K 中转站（OpenAI Compatible）
-    o98k_api_key: SecretStr = SecretStr("")
-    o98k_base_url: str = "https://api.o98k.de/v1"
-    o98k_model: str = "gpt-5.6-sol"
+    # AI 供应商 API Key 加密密钥（med_ai_provider_configs 表 AES-GCM）。
+    # 生产必须配置；缺失时退化为开发兜底密钥并告警（见 app/clients/ai_crypto.py）。
+    med_api_key_enc_key: SecretStr = SecretStr("")
 
     # IMA 外部集成（腾讯 ima.qq.com OpenAPI）
     # 空值表示未开通：AI 助手不注册 ima 相关工具；配置后视为管理员对医疗数据出网的授权
@@ -89,42 +83,6 @@ class Settings(BaseSettings):
     rag_service_timeout: float = 300.0
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
-
-    @property
-    def ai_providers(self) -> dict[str, AIProviderConfig]:
-        return {
-            "kimi": AIProviderConfig(
-                "kimi",
-                self.kimi_api_key,
-                self.kimi_base_url,
-                self.kimi_model,
-            ),
-            "o98k": AIProviderConfig(
-                "o98k",
-                self.o98k_api_key,
-                self.o98k_base_url,
-                self.o98k_model,
-            ),
-        }
-
-    @property
-    def active_ai(self) -> AIProviderConfig:
-        provider = self.ai_providers[self.ai_provider]
-        if not provider.configured:
-            raise LookupError(f"AI 提供商 {provider.name} 未配置 API Key")
-        return provider
-
-    @field_validator("ai_provider")
-    @classmethod
-    def validate_ai_provider(cls, value: str) -> str:
-        allowed = {"kimi", "o98k"}
-        if value not in allowed:
-            raise ValueError(f"AI_PROVIDER 仅支持 {' / '.join(sorted(allowed))}")
-        return value
-
-    @property
-    def kimi_configured(self) -> bool:
-        return self.ai_providers["kimi"].configured
 
     @property
     def ima_configured(self) -> bool:

@@ -44,7 +44,6 @@
 .assistant-empty-state {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   width: min(100%, 980px);
   min-height: 100%;
   margin: auto;
@@ -252,37 +251,124 @@
 
 .assistant-composer {
   flex: none;
-  width: min(880px, calc(100% - 48px));
+  width: min(990px, calc(100% - 48px));
   margin: 0 auto 20px;
-  padding: 12px;
-  border: 1px solid #e1e7f0;
-  border-radius: 12px;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--assistant-border);
+  border-radius: 16px;
   background: #fff;
-  box-shadow: 0 12px 30px rgb(45 67 104 / 10%);
+  box-shadow: 0 16px 40px rgb(45 67 104 / 12%);
+}
+
+.assistant-composer:focus-within {
+  border-color: #b9cdea;
+  box-shadow: 0 0 0 3px rgb(45 108 223 / 12%), 0 16px 40px rgb(45 67 104 / 12%);
 }
 
 .assistant-composer .ant-sender {
-  min-height: 64px;
-  border: 1px solid #dfe4ec;
-  border-radius: 12px;
-  background: #fbfcff;
+  min-height: 0;
+  border: none;
+  border-radius: 14px;
+  background: #fff;
   box-shadow: none;
 }
 
-.assistant-composer .ant-sender:focus-within {
-  border-color: #a9c3ef;
-  box-shadow: 0 0 0 3px rgb(45 108 223 / 12%);
+.assistant-composer .ant-sender-content {
+  min-height: 46px;
+  align-items: center;
+  padding: 8px 10px 0 4px;
 }
 
-.assistant-composer .ant-sender-content {
-  min-height: 56px;
+.assistant-composer .ant-sender-footer {
+  margin-top: 8px;
+  padding-left: 0;
+}
+
+/* 输入框底部工具栏：左侧「文件 / 模型」胶囊，右侧发送按钮 */
+.assistant-composer-tools {
+  display: flex;
   align-items: center;
-  padding: 8px 12px 8px 18px;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.assistant-composer-tools-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.assistant-tool-pill {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--assistant-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--assistant-ink);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.assistant-tool-pill:hover:not(:disabled) {
+  border-color: #c2d3ec;
+  background: #f7faff;
+}
+
+.assistant-tool-pill:focus-visible {
+  outline: 3px solid rgb(45 108 223 / 18%);
+  outline-offset: 1px;
+}
+
+.assistant-tool-pill:disabled {
+  color: var(--assistant-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.assistant-tool-pill .anticon {
+  flex: none;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.assistant-tool-pill--model {
+  max-width: min(360px, 60vw);
+  padding-inline: 10px 8px;
+}
+
+.assistant-model-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.assistant-model-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assistant-tool-pill-caret {
+  flex: none;
+  color: #98a2b3;
+  font-size: 10px;
 }
 
 .assistant-composer .ant-sender-actions-btn {
-  width: 32px;
-  height: 32px;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
 }
 
 .assistant-composer .ant-sender textarea {

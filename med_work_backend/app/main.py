@@ -141,7 +141,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         version=settings.app_version,
-        description="医疗 AI 智能分析工作台后端 · LangChain + Kimi (Moonshot AI) + MySQL",
+        description="医疗 AI 智能分析工作台后端 · LangChain + 多模型动态路由 + MySQL",
         lifespan=lifespan,
     )
 

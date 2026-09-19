@@ -20,3 +20,5 @@ pypdf>=4.0,<6.0
 python-docx>=1.1,<2.0
 # 诊疗分析报告 PDF 导出（app/services/report_service.py）
 reportlab>=4.0,<5.0
+# AI 供应商 API Key 加密存储（app/clients/ai_crypto.py，AES-GCM）
+cryptography>=42.0

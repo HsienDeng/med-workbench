@@ -21,7 +21,7 @@ from app.schemas.chat import (
     ChatRequest,
     ChatResponse,
 )
-from app.clients import kimi
+from app.clients import llm
 from app.clients.ai_provider import get_active_provider
 from app.config import settings
 from app.services import agent_service
@@ -75,7 +75,7 @@ async def analysis(
     """AI 病历分析（结构化输出，需登录，不经过 Agent）。"""
     provider = _require_ai()
     try:
-        data = await kimi.analyze_record(req.text, req.analysis_type, provider)
+        data = await llm.analyze_record(req.text, req.analysis_type, provider)
     except Exception as exc:  # noqa: BLE001
         logger.exception("analysis 调用失败")
         raise AppError(f"调用 {provider.name} 失败：{exc}", code="MED_AI_CALL_FAILED") from exc

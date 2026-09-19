@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bubble, Sender } from '@ant-design/x';
 import { XMarkdown } from '@ant-design/x-markdown';
 import type { GetProp } from 'antd';
-import { Button, App as AntApp, Avatar, Tag, Typography } from 'antd';
+import { Button, App as AntApp, Avatar, Tag, Typography, Dropdown } from 'antd';
 import {
   UserOutlined,
   LoadingOutlined,
@@ -11,6 +11,9 @@ import {
   DownloadOutlined,
   ArrowRightOutlined,
   BulbOutlined,
+  SendOutlined,
+  PaperClipOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 import { colors } from '@/theme';
 import assistantAvatar from '@/assets/assistant.png';
@@ -20,7 +23,10 @@ import {
   updateConversation,
   type ChatMessageInput,
 } from '@/services/chat';
-import { downloadDocumentFile } from '@/services/knowledge';
+import { getAiConnections } from '@/services/api';
+import type { AIConnectionResponse } from '@/types';
+import { downloadDocumentFile, uploadDocumentApi } from '@/services/knowledge';
+import { usePermission } from '@/utils/access';
 import { useXChat, type XAgent, type XMessage } from '@/hooks/useXChat';
 import { toPersist } from '@/hooks/chatMessageState';
 import { useConversationStore } from '@/stores/conversations';
@@ -33,6 +39,12 @@ import {
 import './index.css';
 
 const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+/** 模型胶囊左侧圆点的取色盘，按 provider 顺序轮转分配 */
+const MODEL_DOT_COLORS = ['#7c4dff', '#2d6cdf', '#0b8f7f', '#c56a1a', '#d6455d'];
+
+/** 聊天输入框可上传的文档类型（与后端 knowledge 上传接口白名单保持一致） */
+const UPLOAD_ACCEPT = '.pdf,.docx,.txt,.md';
 
 const CAPABILITIES = [
   {
@@ -159,6 +171,11 @@ export default function Assistant() {
   const [input, setInput] = useState('');
   const [loadingConversationKey, setLoadingConversationKey] = useState('');
   const [loadErrorKey, setLoadErrorKey] = useState('');
+  const [aiConnections, setAiConnections] = useState<AIConnectionResponse[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const modelRef = useRef<string | null>(null);
   const storeRef = useRef<Record<string, XMessage[]>>({});
   const loadVersionRef = useRef(0);
   const saveQueueRef = useRef<Record<string, Promise<unknown>>>({});
@@ -180,6 +197,7 @@ export default function Assistant() {
         streamChat(
           messages.map((m) => ({ role: m.role, content: m.content })),
           {
+            model: modelRef.current ?? undefined,
             signal: cb.signal,
             onChunk: cb.onUpdate,
             onCitations: cb.onCitations,
@@ -190,6 +208,52 @@ export default function Assistant() {
       },
     }),
     [],
+  );
+
+  // 拉取 AI 连接与可用模型，构造 (provider/model) 选项
+  useEffect(() => {
+    let alive = true;
+    void getAiConnections()
+      .then((items) => {
+        if (!alive) return;
+        const enabled = items.filter((item) => item.enabled && item.has_api_key && item.models?.length);
+        setAiConnections(enabled);
+        // 默认选中第一个启用 provider 的 active_model；用户后续可手动切换
+        if (!selectedModel) {
+          const firstActive = enabled[0]?.active_model ?? null;
+          setSelectedModel(firstActive);
+          modelRef.current = firstActive;
+        }
+      })
+      .catch(() => {
+        /* AI 连接拉取失败不影响主流程，模型下拉显示为空 */
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** model → 展示用 provider 名与圆点颜色（下拉里同名模型只保留首次出现的 provider） */
+  const modelMeta = useMemo(() => {
+    const meta: Record<string, { provider: string; model: string; color: string }> = {};
+    aiConnections.forEach((conn, index) => {
+      const color = MODEL_DOT_COLORS[index % MODEL_DOT_COLORS.length];
+      conn.models.forEach((model) => {
+        if (!meta[model]) meta[model] = { provider: conn.name, model, color };
+      });
+    });
+    return meta;
+  }, [aiConnections]);
+
+  const currentModel = selectedModel ? modelMeta[selectedModel] : undefined;
+
+  const modelMenuItems = useMemo(
+    () =>
+      aiConnections.flatMap((conn) =>
+        conn.models.map((model) => ({ key: model, label: `${conn.name} / ${model}` })),
+      ),
+    [aiConnections],
   );
 
   const { messages, onRequest, onCancel, setMessages, loading } = useXChat({ agent });
@@ -326,6 +390,32 @@ export default function Assistant() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [convInitialized, selectedConversationKey]);
 
+  // selectedModel → modelRef 同步（agent.request 闭包读取最新值）
+  useEffect(() => {
+    modelRef.current = selectedModel;
+  }, [selectedModel]);
+
+  const can = usePermission();
+  // 上传到知识库需要 knowledge_document:upload；无权限的账号不展示「文件」按钮
+  const canUpload = can('knowledge_document:upload');
+
+  /** 选中文件后上传到本机构知识库（可被后续提问检索引用） */
+  const handleUploadFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    // 先清空 value，保证同一文件可以重复选择触发 change
+    event.target.value = '';
+    if (!file || uploadingFile) return;
+    setUploadingFile(true);
+    try {
+      await uploadDocumentApi({ file, title: file.name });
+      message.success(`「${file.name}」已上传到知识库，可继续向我提问`);
+    } catch {
+      // 错误提示已由 api.ts 全局处理
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
   const handleSend = (raw: string) => {
     const text = (raw ?? '').trim();
     if (!text || !activeKey || !onRequest(text)) return;
@@ -426,6 +516,13 @@ export default function Assistant() {
         </div>
 
         <div className="assistant-composer">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={UPLOAD_ACCEPT}
+            hidden
+            onChange={(event) => void handleUploadFile(event)}
+          />
           <Sender
             value={input}
             onChange={setInput}
@@ -434,7 +531,57 @@ export default function Assistant() {
             loading={loading}
             disabled={!activeKey || loadingConversationKey === activeKey || loadErrorKey === activeKey}
             autoSize={{ minRows: 1, maxRows: 6 }}
-            placeholder="提问或输入具体要求"
+            placeholder="发送消息..."
+            suffix={false}
+            footer={(_, { components: { SendButton, LoadingButton } }) => (
+              <div className="assistant-composer-tools">
+                <div className="assistant-composer-tools-left">
+                  {canUpload ? (
+                    <button
+                      type="button"
+                      className="assistant-tool-pill"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingFile}
+                      title="上传文件到知识库"
+                    >
+                      {uploadingFile ? <LoadingOutlined /> : <PaperClipOutlined />}
+                      <span>文件</span>
+                    </button>
+                  ) : null}
+                  {aiConnections.length > 0 ? (
+                    <Dropdown
+                      trigger={['click']}
+                      placement="topLeft"
+                      disabled={loading}
+                      menu={{
+                        items: modelMenuItems,
+                        selectedKeys: selectedModel ? [selectedModel] : [],
+                        onClick: ({ key }) => setSelectedModel(key),
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="assistant-tool-pill assistant-tool-pill--model"
+                        aria-label="切换模型"
+                        title="切换模型"
+                      >
+                        <span
+                          className="assistant-model-dot"
+                          style={{ background: currentModel?.color ?? MODEL_DOT_COLORS[0] }}
+                        />
+                        <span className="assistant-model-name">
+                          {currentModel
+                            ? `${currentModel.provider} / ${currentModel.model}`
+                            : '选择模型'}
+                        </span>
+                        <DownOutlined className="assistant-tool-pill-caret" />
+                      </button>
+                    </Dropdown>
+                  ) : null}
+                </div>
+                {loading ? <LoadingButton /> : <SendButton icon={<SendOutlined />} shape="circle" type="primary" />}
+              </div>
+            )}
           />
         </div>
       </div>

@@ -7,8 +7,18 @@ export interface StoredAuth {
   expiresAt?: number;
 }
 
+export interface RememberedCredentials {
+  account: string;
+  password: string;
+}
+
 const AUTH_KEY = 'medai_auth';
-const REMEMBERED_ACCOUNT_KEY = 'medai_last_account';
+/**
+ * "记住我" 落地：保存账号 + 密码，仅当用户明确勾选并登录成功时写入；
+ * 取消勾选再登录成功会被清空。值是 JSON 字符串，
+ * 旧版本可能只存了纯字符串（只有账号），读取时做了兼容。
+ */
+const REMEMBERED_CREDENTIALS_KEY = 'medai_remembered_credentials';
 
 /** 常规登录的前端保留时长（小时），与后端 session_ttl_hours 对齐 */
 export const SESSION_HOURS = 12;
@@ -48,10 +58,42 @@ function read(storage: Storage): StoredAuth | null {
   }
 }
 
+function readRemembered(): RememberedCredentials | null {
+  try {
+    const raw = localStorage.getItem(REMEMBERED_CREDENTIALS_KEY);
+    if (!raw) return null;
+    // 兼容旧版本（只存了 username 字符串）
+    if (raw.startsWith('{')) {
+      const parsed = JSON.parse(raw) as Partial<RememberedCredentials> | null;
+      if (parsed && typeof parsed.account === 'string' && parsed.account) {
+        return {
+          account: parsed.account,
+          password: typeof parsed.password === 'string' ? parsed.password : '',
+        };
+      }
+      return null;
+    }
+    return raw ? { account: raw, password: '' } : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeRemembered(credentials: RememberedCredentials | null) {
+  if (!credentials || !credentials.account) {
+    localStorage.removeItem(REMEMBERED_CREDENTIALS_KEY);
+    return;
+  }
+  localStorage.setItem(REMEMBERED_CREDENTIALS_KEY, JSON.stringify(credentials));
+}
+
 /**
  * 保存登录态。
- * - remember=true：写入 localStorage（关闭浏览器仍保持登录，最长 7 天），并记住账号；
+ * - remember=true：写入 localStorage（关闭浏览器仍保持登录，最长 7 天）；
  * - remember=false：仅写入 sessionStorage（关闭浏览器/标签即失效）。
+ *
+ * 「记住我」对应的账号密码保存请用 saveRememberedCredentials / clearRememberedCredentials，
+ * 放在登录页直接调用，避免凭据穿过多层链路。
  */
 export function saveAuth(auth: StoredAuth, remember = false) {
   const ttlHours = remember ? REMEMBER_HOURS : SESSION_HOURS;
@@ -59,7 +101,30 @@ export function saveAuth(auth: StoredAuth, remember = false) {
   if (remember) sessionStorage.removeItem(AUTH_KEY);
   else localStorage.removeItem(AUTH_KEY);
   write(remember ? localStorage : sessionStorage, auth, ttlHours);
-  if (remember) localStorage.setItem(REMEMBERED_ACCOUNT_KEY, auth.user.username);
+}
+
+/** 写入"记住我"的账号密码到 localStorage（登录页在勾选记住我并登录成功后调用） */
+export function saveRememberedCredentials(credentials: {
+  account: string;
+  password: string;
+}) {
+  if (!credentials || !credentials.account) {
+    localStorage.removeItem(REMEMBERED_CREDENTIALS_KEY);
+    if (import.meta.env.DEV) {
+      console.warn('[remember] empty credentials, removed cached entry');
+    }
+    return;
+  }
+  localStorage.setItem(
+    REMEMBERED_CREDENTIALS_KEY,
+    JSON.stringify({ account: credentials.account, password: credentials.password ?? '' }),
+  );
+  if (import.meta.env.DEV) {
+    console.log('[remember] saved', {
+      account: credentials.account,
+      passwordLen: (credentials.password ?? '').length,
+    });
+  }
 }
 
 /** 读取登录态：先本地（记住我），再会话级 */
@@ -67,13 +132,23 @@ export function loadAuth(): StoredAuth | null {
   return read(localStorage) ?? read(sessionStorage);
 }
 
-/** 清除登录态；记住的账号保留，便于下次登录无需重复输入 */
+/** 清除登录态；记住的账号密码保留，便于下次登录无需重复输入 */
 export function clearAuth() {
   localStorage.removeItem(AUTH_KEY);
   sessionStorage.removeItem(AUTH_KEY);
 }
 
-/** 上次勾选"记住我"登录成功的账号 */
+/** 上次勾选"记住我"登录成功的账号（仅用于显示，登录表单填充请用 loadRememberedCredentials） */
 export function loadRememberedAccount(): string {
-  return localStorage.getItem(REMEMBERED_ACCOUNT_KEY) ?? '';
+  return readRemembered()?.account ?? '';
+}
+
+/** 上次勾选"记住我"登录成功的账号 + 密码；登录页用它自动填充表单 */
+export function loadRememberedCredentials(): RememberedCredentials | null {
+  return readRemembered();
+}
+
+/** 主动清除记住的账号密码（一般由登录页在「未勾选记住我」登录成功后调用） */
+export function clearRememberedCredentials() {
+  writeRemembered(null);
 }

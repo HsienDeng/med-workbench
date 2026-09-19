@@ -1,0 +1,165 @@
+/* AI 服务与 API Key 管理页 */
+
+.aip-page {
+  max-width: 1280px;
+}
+
+.aip-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  margin: 16px 0;
+  background: linear-gradient(135deg, #eaf1fb 0%, #fff 70%);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 16px;
+}
+
+.aip-hero-stats {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.aip-hero-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 72px;
+}
+
+.aip-hero-stats strong {
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--color-text, #1a1f2c);
+}
+
+.aip-hero-stats span {
+  font-size: 12px;
+  color: var(--color-text-muted, #8a93a6);
+}
+
+.aip-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 16px;
+}
+
+.aip-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px 14px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 14px;
+  transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.aip-card:hover {
+  box-shadow: 0 8px 24px rgba(15, 34, 68, 0.1);
+  transform: translateY(-2px);
+}
+
+.aip-card.active {
+  border-color: rgba(45, 108, 223, 0.45);
+  box-shadow: 0 0 0 1px rgba(45, 108, 223, 0.18);
+}
+
+.aip-card-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.aip-card header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.aip-card-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.aip-card-title h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text, #1a1f2c);
+}
+
+.aip-card-provider {
+  font-size: 12px;
+  color: var(--color-text-muted, #8a93a6);
+}
+
+.aip-card-tags {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.aip-card-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.aip-card-fields dt {
+  font-size: 12px;
+  color: var(--color-text-muted, #8a93a6);
+}
+
+.aip-card-fields dd {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text, #1a1f2c);
+  word-break: break-all;
+}
+
+.aip-ellipsis {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.aip-probe {
+  border-radius: 10px;
+}
+
+.aip-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border, #e5e7eb);
+}
+
+.aip-card-actions .ant-btn:last-child {
+  margin-left: auto;
+}
+
+.aip-note {
+  margin-top: 20px;
+  padding: 10px 16px;
+  background: var(--color-bg-secondary, #f5f7fb);
+  border-radius: 10px;
+  text-align: center;
+}

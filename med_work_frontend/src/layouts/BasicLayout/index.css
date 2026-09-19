@@ -43,6 +43,44 @@
   padding-inline-start: 24px !important;
 }
 
+/* 「新会话」入口：高亮主色按钮样式 */
+.app-sidebar-menu .app-sidebar-new-chat.ant-menu-item {
+  margin-inline: 10px;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.app-sidebar-menu .app-sidebar-new-chat.ant-menu-item,
+.app-sidebar-menu .app-sidebar-new-chat.ant-menu-item .ant-menu-title-content,
+.app-sidebar-menu .app-sidebar-new-chat.ant-menu-item .anticon {
+  color: #fff !important;
+}
+
+.app-sidebar-menu .app-sidebar-new-chat.ant-menu-item:hover,
+.app-sidebar-menu .app-sidebar-new-chat.ant-menu-item.ant-menu-item-selected {
+  background: var(--color-primary-hover) !important;
+  color: #fff !important;
+}
+
+.app-sidebar-menu .app-sidebar-new-chat.ant-menu-item::after {
+  display: none;
+}
+
+/* 底部固定入口（AI 服务与 API Key）：不随上方菜单滚动 */
+.app-sidebar-pinned {
+  flex-shrink: 0;
+  padding: 6px 0 8px;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  background: #fff;
+}
+
+.app-sidebar-pinned .ant-menu-item {
+  margin-inline: 10px;
+  border-radius: 8px;
+}
+
 @media (max-width: 767px) {
   .app-sidebar.ant-layout-sider-zero-width {
     overflow: visible !important;

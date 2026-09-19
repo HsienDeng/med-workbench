@@ -19,7 +19,7 @@
 │ 服务 A：med_work_backend（FastAPI，对外 8001）              │
 │ · 鉴权与会话（JWT + Redis + MySQL）                        │
 │ · LangGraph 智能体（agent_service.py）                     │
-│ · AI 提供商路由（kimi / o98k，运行时可切换）               │
+│ · AI 提供商路由（数据库配置，管理页可切换）                │
 │ · 知识库接口 → 代理转发到服务 B（rag_proxy.py）             │
 └───────┬──────────────────────────┬────────────────────────┘
         │ HTTP 代理（内网）         │ 读写业务表
@@ -198,7 +198,7 @@ curl http://127.0.0.1:8002/health       # status/database/embedding_loaded/vecto
 | 配置项 | 服务 A | 服务 B | 说明 |
 |---|---|---|---|
 | `DB_*` | ✅ | ✅ | 共用同一 MySQL 实例，必须两边都有 |
-| LLM 密钥 | `O98K_API_KEY` | `LLM_API_KEY` | **同一个密钥**，A 用于对话，B 用于 LLM 语义切分 |
+| LLM 密钥 | 数据库（管理页维护） | `LLM_API_KEY` | A 的供应商凭据存 `med_ai_provider_configs` 表（加密）；B 的切分密钥在 B `.env` |
 | `UPLOAD_DIR` | ✅（仅参考值，透传） | ✅（实际写盘） | A 不操作磁盘 |
 
 **更换密钥 / 数据库密码时必须两边同步**，两个 `.env` 中已加对应提醒注释。
@@ -209,7 +209,7 @@ curl http://127.0.0.1:8002/health       # status/database/embedding_loaded/vecto
 |---|---|---|---|
 | `RAG_SERVICE_BASE_URL` | A `.env` | `http://127.0.0.1:8002` | 服务 B 地址 |
 | `RAG_SERVICE_TIMEOUT` | A `.env` | `300` | 上传含切分+向量化，需放宽 |
-| `AI_PROVIDER` | A `.env` / Redis | `o98k` | Redis 值优先，可在前端切换 |
+| `MED_API_KEY_ENC_KEY` | A `.env` | 空（开发兜底） | 数据库中 API Key 的加密密钥，生产必配 |
 | `EMBEDDING_MODEL_NAME` | B `.env` | `./models/bge-base-zh-v1.5` | 模型名或本地目录 |
 | `QDRANT_PATH` | B `.env` | `./data/qdrant` | 向量库目录 |
 | `LLM_CHUNKING` | B `.env` | `true` | LLM 语义切分，失败自动回退规则切分 |
@@ -234,7 +234,7 @@ curl http://127.0.0.1:8002/health       # status/database/embedding_loaded/vecto
 | IMA 文件详情显示「暂无可在线预览的正文」 | 该平台（如微信公众号）有反爬限制，无法抓取原文，属预期行为，请在 IMA 客户端查看 |
 | IMA 接口返回 `configured: false` | 服务 A `.env` 未配置 `IMA_OPENAPI_CLIENTID` / `IMA_OPENAPI_APIKEY`；配好后需重启（IMA 未配置时不注册相关 Agent 工具） |
 | IMA PDF 正文出现乱码长串 | 检查是否为新增的 PDF 隐藏对象噪声，需在 `_pdf_to_text()` 的 `_PDF_NOISE_RE` 中补充过滤规则 |
-| 对话报 `MED_AI_CALL_FAILED` | AI 提供商不可达（如 o98k 需走代理）；切换 `AI_PROVIDER=kimi` 或检查网络 |
+| 对话报 `MED_AI_CALL_FAILED` | 当前 AI 供应商不可达；在「AI 服务与 API Key」页面测速排查，必要时切换到可达的供应商 |
 | 会话记忆丢失 | 检查 MySQL 中 `med_checkpoints` 等 4 张表；Redis 不可用时会自动降级为内存模式（重启即失忆） |
 | MySQL checkpoint 报 collation 冲突 | 将 4 张 checkpoint 表转为 `utf8mb4_0900_ai_ci`：<br>`ALTER TABLE med_checkpoints CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;`（4 张表各执行一次） |
 | 前端直连后端出现 CORS 错误 | 后端 `CORS_ORIGINS` 仅放行 5173/5174；**推荐走 vite 代理**（8080 同源），不要直连 8001 |

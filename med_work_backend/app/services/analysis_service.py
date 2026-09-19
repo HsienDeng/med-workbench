@@ -7,7 +7,7 @@ from typing import Optional
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from app.clients import kimi
+from app.clients import llm
 from app.clients.ai_provider import get_active_provider
 from app.config import settings
 from app.exceptions import AppError, NotFoundError
@@ -173,7 +173,7 @@ async def run_analysis(
     knowledge = await search_knowledge(hospital_id, record)
 
     try:
-        data = await kimi.analyze_record(
+        data = await llm.analyze_record(
             text, payload.analysis_type, provider, knowledge=knowledge
         )
     except Exception as exc:  # noqa: BLE001
@@ -366,7 +366,7 @@ async def retry_record(db: Session, user: RbacUser, record_id: int) -> AnalysisR
     knowledge = await search_knowledge(hospital_id, record)
 
     try:
-        data = await kimi.analyze_record(
+        data = await llm.analyze_record(
             text, row.analysis_type, provider, knowledge=knowledge
         )
     except Exception as exc:  # noqa: BLE001

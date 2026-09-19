@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } f
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bubble, Sender } from '@ant-design/x';
 import { XMarkdown } from '@ant-design/x-markdown';
-import type { GetProp } from 'antd';
+import type { GetProp, MenuProps } from 'antd';
 import { Button, App as AntApp, Avatar, Tag, Typography, Dropdown } from 'antd';
 import {
   UserOutlined,
@@ -14,6 +14,13 @@ import {
   SendOutlined,
   PaperClipOutlined,
   DownOutlined,
+  ThunderboltOutlined,
+  MedicineBoxOutlined,
+  BookOutlined,
+  CommentOutlined,
+  ExperimentOutlined,
+  FileSearchOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import { colors } from '@/theme';
 import assistantAvatar from '@/assets/assistant.png';
@@ -23,6 +30,7 @@ import {
   updateConversation,
   type ChatMessageInput,
 } from '@/services/chat';
+import { listPrompts, type PromptTemplate } from '@/services/prompts';
 import { getAiConnections } from '@/services/api';
 import type { AIConnectionResponse } from '@/types';
 import { downloadDocumentFile, uploadDocumentApi } from '@/services/knowledge';
@@ -30,6 +38,7 @@ import { usePermission } from '@/utils/access';
 import { useXChat, type XAgent, type XMessage } from '@/hooks/useXChat';
 import { toPersist } from '@/hooks/chatMessageState';
 import { useConversationStore } from '@/stores/conversations';
+import PromptManageModal from './PromptManageModal';
 import {
   DataAnalysisIcon,
   KnowledgeSearchIcon,
@@ -42,6 +51,20 @@ const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2
 
 /** 模型胶囊左侧圆点的取色盘，按 provider 顺序轮转分配 */
 const MODEL_DOT_COLORS = ['#7c4dff', '#2d6cdf', '#0b8f7f', '#c56a1a', '#d6455d'];
+
+/** 预设提示词在下拉菜单中的固定图标（按名称匹配） */
+const PRESET_ICON_BY_NAME: Record<string, React.ReactNode> = {
+  病历分析助手: <FileSearchOutlined />,
+  临床用药咨询: <MedicineBoxOutlined />,
+  循证指南检索: <BookOutlined />,
+  患者沟通助手: <CommentOutlined />,
+  检查检验解读: <ExperimentOutlined />,
+};
+
+/** 提示词下拉菜单的菜单项 key 约定：'default'=默认助手，'p-<id>'=模板，'manage'=管理入口 */
+const PROMPT_KEY_DEFAULT = 'default';
+const PROMPT_KEY_MANAGE = 'manage';
+const toPromptKey = (id: number) => `p-${id}`;
 
 /** 聊天输入框可上传的文档类型（与后端 knowledge 上传接口白名单保持一致） */
 const UPLOAD_ACCEPT = '.pdf,.docx,.txt,.md';
@@ -176,20 +199,30 @@ const toXMessage = (m: ChatMessageInput): XMessage => ({
 const CJK_CHAR = '[\\u4e00-\\u9fff\\u3000-\\u303f\\uff01-\\uff5e]';
 
 /**
- * 去掉中文字符之间的单个换行（Markdown 软换行会渲染成空格，导致
- * 「你 好 ！」式的字间空白）。代码块（``` 围栏）内的内容保持原样。
+ * 归一化模型输出后再交给 XMarkdown 渲染。
+ *
+ * 部分模型/网关会在中文 token 之间带出空格、把换行压成空格，导致：
+ * 1. 「你 好 ！」式的字间空白；
+ * 2. Markdown 列表（"- "）、加粗（**）因失去换行/行首而解析失效，原样显示。
+ *
+ * 处理（``` 围栏内的代码块保持原样）：
+ * - 「句末标点 + 空格 + "- "」还原为换行的列表项；
+ * - 去掉中文字符之间的空格与换行（中文不需要词间空格）。
  */
-const squashCjkSoftBreaks = (raw: string): string =>
+const normalizeModelText = (raw: string): string =>
   raw
     .split(/(```[\s\S]*?(?:```|$))/g)
-    .map((part, index) =>
-      index % 2 === 1
-        ? part
-        : part.replace(
-            new RegExp(`(${CJK_CHAR})[ \\t]*\\r?\\n(?=${CJK_CHAR})`, 'g'),
-            '$1',
-          ),
-    )
+    .map((part, index) => {
+      if (index % 2 === 1) return part;
+      return part
+        // 「。／；／！／： + 空白 + - 」→ 换行，恢复被压平的列表
+        .replace(new RegExp(`([。；！：])[ \\t\\r\\n]+-(?=[ \\t*\\u4e00-\\u9fff])`, 'g'), '$1\n- ')
+        // 中文（含全角标点）之间的空格/换行一律去掉
+        .replace(
+          new RegExp(`(?<=${CJK_CHAR})[ \\t\\r\\n]+(?=${CJK_CHAR})`, 'g'),
+          '',
+        );
+    })
     .join('');
 
 export default function Assistant() {
@@ -210,9 +243,14 @@ export default function Assistant() {
   const [loadErrorKey, setLoadErrorKey] = useState('');
   const [aiConnections, setAiConnections] = useState<AIConnectionResponse[]>([]);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [prompts, setPrompts] = useState<PromptTemplate[]>([]);
+  const [selectedPromptId, setSelectedPromptId] = useState<number | null>(null);
+  const [manageOpen, setManageOpen] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modelRef = useRef<string | null>(null);
+  const promptContentRef = useRef<string | null>(null);
+  const convPromptRef = useRef<Record<string, number | null>>({});
   const storeRef = useRef<Record<string, XMessage[]>>({});
   const loadVersionRef = useRef(0);
   const saveQueueRef = useRef<Record<string, Promise<unknown>>>({});
@@ -235,6 +273,7 @@ export default function Assistant() {
           messages.map((m) => ({ role: m.role, content: m.content })),
           {
             model: modelRef.current ?? undefined,
+            systemPrompt: promptContentRef.current ?? undefined,
             signal: cb.signal,
             onChunk: cb.onUpdate,
             onThinking: cb.onThinking,
@@ -326,6 +365,8 @@ export default function Assistant() {
       if (version !== loadVersionRef.current || activeKeyRef.current !== key) return;
       const msgs = detail.messages.map(toXMessage);
       storeRef.current[key] = msgs;
+      convPromptRef.current[key] = detail.prompt_id ?? null;
+      setSelectedPromptId(detail.prompt_id ?? null);
       setMessages(msgs);
     } catch {
       if (version !== loadVersionRef.current || activeKeyRef.current !== key) return;
@@ -362,7 +403,11 @@ export default function Assistant() {
         const detail = await getConversation(Number(target.key));
         if (!alive) return;
         storeRef.current[target.key] = detail.messages.map(toXMessage);
-        if (activeKeyRef.current === target.key) setMessages(storeRef.current[target.key]);
+        convPromptRef.current[target.key] = detail.prompt_id ?? null;
+        if (activeKeyRef.current === target.key) {
+          setSelectedPromptId(detail.prompt_id ?? null);
+          setMessages(storeRef.current[target.key]);
+        }
       } catch {
         if (alive) {
           setLoadErrorKey(activeKeyRef.current || 'initial');
@@ -396,6 +441,7 @@ export default function Assistant() {
     setLoadErrorKey('');
     setActiveKey(key);
     selectConversation(key);
+    setSelectedPromptId(convPromptRef.current[key] ?? null);
     const cached = storeRef.current[key];
     if (cached) {
       setMessages(cached);
@@ -432,6 +478,96 @@ export default function Assistant() {
   useEffect(() => {
     modelRef.current = selectedModel;
   }, [selectedModel]);
+
+  // 拉取提示词模板列表（预设 + 本人自建）
+  useEffect(() => {
+    let alive = true;
+    void listPrompts()
+      .then((list) => {
+        if (alive) setPrompts(list);
+      })
+      .catch(() => {
+        /* 提示词拉取失败不影响主流程，下拉显示为默认助手 */
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // 选中模板 → 内容引用同步（agent.request 闭包读取最新值；模板被删则视为默认助手）
+  useEffect(() => {
+    promptContentRef.current = selectedPromptId
+      ? prompts.find((item) => item.id === selectedPromptId)?.content ?? null
+      : null;
+  }, [selectedPromptId, prompts]);
+
+  const currentPrompt = selectedPromptId
+    ? prompts.find((item) => item.id === selectedPromptId)
+    : undefined;
+
+  const promptMenuItems = useMemo<MenuProps['items']>(() => {
+    const renderLabel = (item: PromptTemplate) => (
+      <span className="assistant-prompt-menu-item">
+        {PRESET_ICON_BY_NAME[item.name] ?? <ThunderboltOutlined />}
+        {item.name}
+      </span>
+    );
+    const items: NonNullable<MenuProps['items']> = [
+      {
+        key: PROMPT_KEY_DEFAULT,
+        label: (
+          <span className="assistant-prompt-menu-item">
+            <ThunderboltOutlined />
+            默认助手
+          </span>
+        ),
+      },
+    ];
+    items.push({
+      type: 'group',
+      label: '提示词',
+      children: prompts.length
+        ? prompts.map((item) => ({ key: toPromptKey(item.id), label: renderLabel(item) }))
+        : [{ key: 'prompts-empty', disabled: true, label: '暂无提示词' }],
+    });
+    items.push(
+      { type: 'divider' },
+      {
+        key: PROMPT_KEY_MANAGE,
+        label: (
+          <span className="assistant-prompt-menu-item">
+            <SettingOutlined />
+            管理提示词…
+          </span>
+        ),
+      },
+    );
+    return items;
+  }, [prompts]);
+
+  /** 选择提示词：更新本轮生效内容并持久化到当前会话 */
+  const handleSelectPrompt = (key: string) => {
+    if (key === PROMPT_KEY_MANAGE) {
+      setManageOpen(true);
+      return;
+    }
+    const id = key === PROMPT_KEY_DEFAULT ? null : Number(key.slice(2));
+    if (id && !prompts.some((item) => item.id === id)) return;
+    setSelectedPromptId(id);
+    if (activeKeyRef.current) {
+      const convKey = activeKeyRef.current;
+      convPromptRef.current[convKey] = id;
+      void updateConversation(Number(convKey), { promptId: id ?? 0 }).catch(() => {
+        /* 持久化失败仅影响下次进入时的恢复，不打断对话 */
+      });
+    }
+  };
+
+  /** 管理弹窗增删改后同步下拉选项；选中模板被删时回退默认助手 */
+  const handlePromptsChanged = (list: PromptTemplate[]) => {
+    setPrompts(list);
+    setSelectedPromptId((prev) => (prev && list.some((item) => item.id === prev) ? prev : null));
+  };
 
   const can = usePermission();
   // 上传到知识库需要 knowledge_document:upload；无权限的账号不展示「文件」按钮
@@ -481,7 +617,7 @@ export default function Assistant() {
         {m.thinking ? <ThinkingPanel thinking={m.thinking} active={m.status === 'loading'} /> : null}
         {m.content ? (
           <XMarkdown
-            content={squashCjkSoftBreaks(m.content)}
+            content={normalizeModelText(m.content)}
             className="assistant-markdown x-markdown-light"
             escapeRawHtml
             openLinksInNewTab
@@ -615,6 +751,29 @@ export default function Assistant() {
                       </button>
                     </Dropdown>
                   ) : null}
+                  <Dropdown
+                    trigger={['click']}
+                    placement="topLeft"
+                    disabled={loading}
+                    menu={{
+                      items: promptMenuItems,
+                      selectedKeys: [selectedPromptId ? toPromptKey(selectedPromptId) : PROMPT_KEY_DEFAULT],
+                      onClick: ({ key }) => handleSelectPrompt(key),
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className={`assistant-tool-pill assistant-tool-pill--prompt${selectedPromptId ? ' assistant-tool-pill--active' : ''}`}
+                      aria-label="切换提示词"
+                      title="切换提示词"
+                    >
+                      <ThunderboltOutlined />
+                      <span className="assistant-prompt-name">
+                        {currentPrompt?.name ?? '默认助手'}
+                      </span>
+                      <DownOutlined className="assistant-tool-pill-caret" />
+                    </button>
+                  </Dropdown>
                 </div>
                 {loading ? <LoadingButton /> : <SendButton icon={<SendOutlined />} shape="circle" type="primary" />}
               </div>
@@ -622,6 +781,11 @@ export default function Assistant() {
           />
         </div>
       </div>
+      <PromptManageModal
+        open={manageOpen}
+        onClose={() => setManageOpen(false)}
+        onChanged={handlePromptsChanged}
+      />
     </div>
   );
 }

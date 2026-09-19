@@ -17,6 +17,7 @@ MENU_SEED: tuple[dict[str, object], ...] = (
     {"key": "dashboard", "route_key": "dashboard", "title": "工作台总览", "icon": "DashboardOutlined", "parent_key": "clinical-hub", "sort_order": 20},
     {"key": "analysis", "route_key": "analysis", "title": "AI 病历分析", "icon": "FileSearchOutlined", "parent_key": "clinical-hub", "badge": "Beta", "sort_order": 21},
     {"key": "patients", "route_key": "patients", "title": "患者档案", "icon": "TeamOutlined", "parent_key": "clinical-hub", "sort_order": 22},
+    {"key": "prompts", "route_key": "prompts", "title": "提示词管理", "icon": "ThunderboltOutlined", "parent_key": "clinical-hub", "sort_order": 23},
     {"key": "documents", "route_key": "documents", "title": "文档管理", "icon": "FolderOpenOutlined", "parent_key": "clinical-hub", "sort_order": 25},
     {"key": "entities", "route_key": "entities", "title": "医疗实体", "icon": "ApartmentOutlined", "parent_key": "clinical-hub", "phase2": True, "sort_order": 27},
     {"key": "retrieval", "route_key": "retrieval", "title": "检索测试", "icon": "ExperimentOutlined", "parent_key": "clinical-hub", "sort_order": 28},
@@ -36,12 +37,12 @@ ROLE_MENU_SEED: dict[str, frozenset[str]] = {
     "hospital_admin": ALL_MENU_KEYS,
     "doctor": frozenset({
         "dashboard", "new-conversation", "clinical-hub", "analysis", "patients",
-        "documents", "retrieval",
+        "documents", "retrieval", "prompts",
     }),
     "knowledge_admin": frozenset({
-        "dashboard", "new-conversation", "clinical-hub", "documents", "retrieval",
+        "dashboard", "new-conversation", "clinical-hub", "documents", "retrieval", "prompts",
     }),
-    "auditor": frozenset({"dashboard", "new-conversation", "clinical-hub", "analysis", "audit", "retrieval"}),
+    "auditor": frozenset({"dashboard", "new-conversation", "clinical-hub", "analysis", "audit", "retrieval", "prompts"}),
 }
 
 

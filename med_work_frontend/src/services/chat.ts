@@ -27,6 +27,8 @@ export interface ChatMessageInput {
 export interface ChatConversationSummary {
   id: number;
   title: string;
+  /** 会话绑定的提示词模板 ID，null=默认助手 */
+  prompt_id?: number | null;
   updated_at?: string | null;
 }
 
@@ -74,15 +76,17 @@ export const createConversation = (title = '新对话') =>
     body: JSON.stringify({ title }),
   });
 
-/** 更新会话（标题 / 消息可选更新，消息整存） */
+/** 更新会话（标题 / 提示词 / 消息可选更新，消息整存；promptId 传 0 表示切回默认助手） */
 export const updateConversation = (
   id: number,
-  patch: { title?: string; messages?: ChatMessageInput[] },
-) =>
-  request<ChatConversationSummary>(`/api/chat/conversations/${id}`, {
+  patch: { title?: string; promptId?: number; messages?: ChatMessageInput[] },
+) => {
+  const { promptId, ...rest } = patch;
+  return request<ChatConversationSummary>(`/api/chat/conversations/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(patch),
+    body: JSON.stringify({ ...rest, prompt_id: promptId }),
   });
+};
 
 /** 删除会话 */
 export const deleteConversation = (id: number) =>

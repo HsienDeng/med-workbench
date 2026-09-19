@@ -22,6 +22,7 @@ import Dictionaries from '@/pages/Dictionaries';
 import Accounts from '@/pages/Accounts';
 import Permissions from '@/pages/Permissions';
 import Audit from '@/pages/Audit';
+import Prompts from '@/pages/Prompts';
 import Login from '@/pages/Login';
 import type { PageKey } from '@/types';
 import { getCurrentMenus, getCurrentUser, logoutApi } from '@/services/api';
@@ -139,6 +140,7 @@ export default function App() {
               <Route path="/accounts" element={<Accounts />} />
               <Route path="/permissions" element={<Permissions />} />
               <Route path="/audit" element={<Audit />} />
+              <Route path="/prompts" element={<Prompts />} />
               <Route path="/retrieval" element={<Retrieval />} />
               <Route path="/ai-connections" element={<AiProviderManagement />} />
               {PHASE2_PAGES.map((routePage) => (

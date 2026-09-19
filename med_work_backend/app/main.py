@@ -24,6 +24,7 @@ from app.routers import (
     medical_record,
     notifications,
     patient,
+    prompts,
     roles,
     wx,
 )
@@ -166,6 +167,7 @@ def create_app() -> FastAPI:
     app.include_router(dictionary.router, prefix="/api")
     app.include_router(wx.router, prefix="/api")
     app.include_router(patient.router, prefix="/api")
+    app.include_router(prompts.router, prefix="/api")
     app.include_router(medical_record.router, prefix="/api")
     app.include_router(roles.router, prefix="/api")
     app.include_router(analysis.router, prefix="/api")

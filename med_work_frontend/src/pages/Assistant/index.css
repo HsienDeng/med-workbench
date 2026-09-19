@@ -463,6 +463,53 @@
   font-size: 10px;
 }
 
+/* ---------- 提示词胶囊 ---------- */
+
+.assistant-tool-pill--prompt {
+  max-width: min(200px, 44vw);
+  padding-inline: 10px 8px;
+}
+
+.assistant-tool-pill--prompt .anticon:first-child {
+  color: #64748b;
+}
+
+.assistant-tool-pill--prompt.assistant-tool-pill--active {
+  border-color: #b8d4ff;
+  background: #f0f6ff;
+}
+
+.assistant-tool-pill--prompt.assistant-tool-pill--active .anticon:first-child {
+  color: #1677ff;
+}
+
+.assistant-tool-pill--prompt.assistant-tool-pill--active:hover:not(:disabled) {
+  border-color: #91caff;
+  background: #e6f1ff;
+}
+
+.assistant-prompt-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 下拉菜单项：图标 + 名称 */
+.assistant-prompt-menu-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.assistant-prompt-menu-item .anticon {
+  flex: none;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* 提示词管理样式已迁移至 src/components/PromptManagePanel/index.css（页面与弹窗共用） */
+
 .assistant-composer .ant-sender-actions-btn {
   flex: none;
   width: 36px;

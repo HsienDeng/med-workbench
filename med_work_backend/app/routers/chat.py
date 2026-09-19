@@ -120,7 +120,8 @@ async def list_chat_conversations(
         .all()
     )
     return [
-        ChatConversationOut(id=r.id, title=r.title, updated_at=r.updated_at) for r in rows
+        ChatConversationOut(id=r.id, title=r.title, prompt_id=r.prompt_id, updated_at=r.updated_at)
+        for r in rows
     ]
 
 
@@ -135,6 +136,7 @@ async def get_chat_conversation(
     return ChatConversationDetail(
         id=row.id,
         title=row.title,
+        prompt_id=row.prompt_id,
         updated_at=row.updated_at,
         messages=[ChatMessage.model_validate(m) for m in (row.messages or [])],
     )
@@ -151,12 +153,13 @@ async def create_chat_conversation(
         hospital_id=user.hospital_id or 1,
         user_id=user.id,
         title=payload.title.strip() or "新对话",
+        prompt_id=payload.prompt_id,
         messages=[],
     )
     db.add(row)
     db.commit()
     db.refresh(row)
-    return ChatConversationOut(id=row.id, title=row.title, updated_at=row.updated_at)
+    return ChatConversationOut(id=row.id, title=row.title, prompt_id=row.prompt_id, updated_at=row.updated_at)
 
 
 @router.put("/chat/conversations/{conv_id}", response_model=ChatConversationOut)
@@ -170,11 +173,14 @@ async def update_chat_conversation(
     row = _owned_conversation(db, conv_id, user)
     if payload.title is not None:
         row.title = payload.title.strip() or "新对话"
+    if payload.prompt_id is not None:
+        # prompt_id=0 视为切回「默认助手」：清空会话绑定的模板
+        row.prompt_id = payload.prompt_id or None
     if payload.messages is not None:
         row.messages = [m.model_dump() for m in payload.messages]
     db.commit()
     db.refresh(row)
-    return ChatConversationOut(id=row.id, title=row.title, updated_at=row.updated_at)
+    return ChatConversationOut(id=row.id, title=row.title, prompt_id=row.prompt_id, updated_at=row.updated_at)
 
 
 @router.delete("/chat/conversations/{conv_id}", response_model=dict)

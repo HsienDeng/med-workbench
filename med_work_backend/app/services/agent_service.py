@@ -41,15 +41,21 @@ MEDICAL_DISCLAIMER = (
     "（以上内容由 AI 生成，仅供参考，不构成诊疗建议；实际诊疗请以临床医生意见为准。）"
 )
 
-_DEFAULT_AGENT_SYSTEM_PROMPT = (
-    "你是 MedAI Workbench 的医疗 AI 助手（Agent），服务于医疗机构用户。"
+_DEFAULT_AGENT_IDENTITY = "你是 MedAI Workbench 的医疗 AI 助手（Agent），服务于医疗机构用户。"
+
+_AGENT_RULES_PROMPT = (
     "你可以调用以下工具获取循证依据后再作答：\n"
     "1. search_knowledge_base：检索本机构本地医学知识库（指南/文献/药品/病例/规范等）；\n"
     "2. search_ima_knowledge：检索外部 IMA 医学知识库；\n"
     "3. save_ima_note：把内容保存为 IMA 笔记（仅在用户明确要求保存/收藏时使用）。\n"
     "回答须专业、严谨、结构化；涉及具体诊疗建议时，应先检索知识库获取依据，"
-    "并提示内容仅供参考、需经临床医生审核。"
+    "并提示内容仅供参考、需经临床医生审核。\n"
+    "输出格式要求：正文使用标准 Markdown；列表项、标题必须独占一行（以换行开头），"
+    "不要用空格替代换行；中文文字之间不要插入空格；"
+    "代码块使用 ``` 围栏并标注语言。"
 )
+
+_DEFAULT_AGENT_SYSTEM_PROMPT = _DEFAULT_AGENT_IDENTITY + _AGENT_RULES_PROMPT
 
 # 输入安全校验：命中以下危险模式直接拒绝并引导求助，不调用 LLM
 _BLOCKED_KEYWORDS = (
@@ -395,7 +401,7 @@ async def _build_graph(hospital_id: int, model: str | None = None):
         - 中间 yield 每个 AIMessageChunk 供前端流式渲染；
         - 最后一次 yield 完整 AIMessage，保证 safety_out 能取到完整回复。
         """
-        sys_prompt = state.get("system_prompt") or _DEFAULT_AGENT_SYSTEM_PROMPT
+        sys_prompt = compose_system_prompt(state.get("system_prompt"))
         messages = [SystemMessage(content=sys_prompt)] + _sanitize_tool_history(list(state["messages"]))
         full_chunk: AIMessageChunk | None = None
         async for chunk in graph_model.astream(messages):
@@ -447,6 +453,24 @@ async def _build_graph(hospital_id: int, model: str | None = None):
 
 def _thread_config(user: RbacUser) -> dict:
     return {"configurable": {"thread_id": f"user:{user.id}"}}
+
+
+def compose_system_prompt(custom: str | None) -> str:
+    """组合系统提示词：角色模板身份在前，工具/格式规则在后。
+
+    custom 为空时返回默认提示词，保证旧请求行为不变；
+    custom 存在时以其为第一身份（替换默认身份句），并明确声明角色设定优先，
+    避免模型仍以"通用医疗 AI 助手"自居；工具调用与 Markdown 格式约束保留。
+    """
+    text = (custom or "").strip()
+    if not text:
+        return _DEFAULT_AGENT_SYSTEM_PROMPT
+    return (
+        "# 角色设定（最高优先级，以此身份进行自我介绍与作答）\n"
+        + text
+        + "\n\n# 平台通用规则\n"
+        + _AGENT_RULES_PROMPT
+    )
 
 
 def _build_input(req: ChatRequest) -> dict:

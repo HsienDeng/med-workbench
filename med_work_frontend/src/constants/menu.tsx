@@ -24,6 +24,7 @@ import {
   AppstoreOutlined,
   WechatOutlined,
   PlusOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 import { useMemo } from 'react';
 import type { DynamicMenu, PageKey } from '@/types';
@@ -69,12 +70,13 @@ const ICONS: Record<string, React.ComponentType> = {
   RobotOutlined,
   WechatOutlined,
   PlusOutlined,
+  ThunderboltOutlined,
 };
 
 export const PAGE_KEYS = [
   'dashboard', 'analysis', 'patients', 'documents', 'wxGroups',
   'assistant', 'entities', 'retrieval', 'dictionaries', 'accounts', 'permissions',
-  'audit', 'ai-connections',
+  'audit', 'ai-connections', 'prompts',
 ] satisfies readonly PageKey[];
 
 /**
@@ -83,6 +85,7 @@ export const PAGE_KEYS = [
  * 保证侧边栏只保留业务菜单；管理入口改由 Header 齿轮（SYSTEM_ENTRIES）提供。
  */
 export const HIDDEN_PAGE_KEYS: ReadonlySet<PageKey> = new Set<PageKey>([
+  'dashboard',
   'entities',
   'retrieval',
   'dictionaries',

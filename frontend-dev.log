@@ -52,3 +52,29 @@ Error: [safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":2235,"threshold
 [2m14:41:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
 [2m14:50:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
 [2m14:50:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:26:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m20:28:08[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/layouts/BasicLayout/index.tsx[22m
+[2m20:48:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/layouts/BasicLayout/index.tsx, /src/pages/Assistant/index.tsx[22m
+[2m20:48:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/layouts/BasicLayout/index.tsx, /src/pages/Assistant/index.tsx[22m
+[2m20:48:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/layouts/BasicLayout/index.tsx, /src/pages/Assistant/index.tsx[22m
+[2m20:49:21[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:49:22[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:49:28[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:49:29[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:49:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:49:39[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:49:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:49:45[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:49:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:49:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:49:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m20:50:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m20:59:40[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Phase2Placeholder/index.tsx, /src/pages/Audit/index.tsx, /src/pages/Documents/index.tsx, /src/pages/Dashboard/index.tsx, /src/pages/Patients/index.tsx, /src/pages/Analysis/index.tsx, /src/pages/Documents/components/DocOverview.tsx, /src/pages/Documents/components/LocalDocumentTable.tsx, /src/pages/Documents/components/UploadTasksModal/index.tsx, /src/pages/WxGroups/index.tsx, /src/pages/Documents/components/LocalDocumentDetailDrawer.tsx, /src/pages/Patients/PatientDetailView.tsx[22m
+[2m20:59:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m20:59:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Audit/index.tsx, /src/pages/Dashboard/index.tsx, /src/pages/Analysis/index.tsx, /src/pages/Analysis/components/ConclusionCard.tsx, /src/pages/Patients/components/AnalysisEvolution.tsx, /src/pages/Patients/components/PatientTimeline.tsx, /src/pages/Patients/components/RecordAiArchivePanel.tsx[22m
+[2m20:59:51[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/layouts/BasicLayout/index.tsx[22m
+[2m20:59:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/layouts/BasicLayout/index.tsx[22m
+[2m20:59:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx[22m
+[2m20:59:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx[22m
+[2m21:10:28[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m21:10:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m

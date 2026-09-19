@@ -64,6 +64,7 @@ export type PageKey =
   | 'dashboard'
   | 'analysis'
   | 'patients'
+  | 'prompts'
   | 'documents'
   | 'wxGroups'
   | 'assistant'

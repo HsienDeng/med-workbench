@@ -11,6 +11,7 @@ from app.models.menu import Menu, RoleMenu
 from app.models.notification import Notification
 from app.models.patient import Patient
 from app.models.permission import Permission, RolePermission
+from app.models.prompt import PromptTemplate
 from app.models.rbac import Department, Hospital, RbacUser, Role, UserRole
 from app.models.session import UserSession
 from app.models.wx import WxGroup, WxGroupPatient, WxMessage
@@ -35,6 +36,7 @@ __all__ = [
     "Notification",
     "Patient",
     "Permission",
+    "PromptTemplate",
     "RbacUser",
     "Role",
     "RoleMenu",

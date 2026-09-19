@@ -20,6 +20,7 @@ class ChatConversation(Base):
     hospital_id: Mapped[int] = mapped_column(BigInteger, nullable=False, default=1, comment="所属医院ID")
     user_id: Mapped[int] = mapped_column(BigInteger, nullable=False, comment="所属用户ID")
     title: Mapped[str] = mapped_column(String(128), nullable=False, default="新对话", comment="会话标题")
+    prompt_id: Mapped[int | None] = mapped_column(BigInteger, comment="会话使用的提示词模板ID，空=默认助手")
     messages: Mapped[list] = mapped_column(JSON, nullable=False, default=list, comment="消息列表 [{role,content,status}]")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

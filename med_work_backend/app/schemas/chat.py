@@ -39,6 +39,7 @@ class ChatConversationOut(BaseModel):
 
     id: int
     title: str
+    prompt_id: int | None = None
     updated_at: datetime | None = None
 
 
@@ -52,12 +53,14 @@ class ChatConversationCreate(BaseModel):
     """创建会话请求。"""
 
     title: str = Field(default="新对话", max_length=128)
+    prompt_id: int | None = Field(default=None, description="会话使用的提示词模板ID")
 
 
 class ChatConversationUpdate(BaseModel):
     """更新会话请求（标题与消息均可选更新）。"""
 
     title: str | None = Field(default=None, max_length=128)
+    prompt_id: int | None = Field(default=None, description="会话使用的提示词模板ID")
     messages: list[ChatMessage] | None = None
 
 

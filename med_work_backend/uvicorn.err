@@ -1,11 +1,18 @@
-INFO:     Started server process [18264]
+INFO:     Started server process [10120]
 INFO:     Waiting for application startup.
-INFO:app.services.seed:Cleaned 6 expired/revoked sessions
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+D:\project\med-workbench\med_work_backend\.venv\Lib\site-packages\aiomysql\cursors.py:458: Warning: Table 'med_checkpoint_migrations' already exists
+  await self._do_get_result()
+INFO:app.services.agent_service:Agent 会话记忆持久化已启用（MySQL root@127.0.0.1:3306/med_workbench）
+INFO:httpx2:HTTP Request: POST https://api.o98k.de/v1/responses "HTTP/1.1 200 OK"
+INFO:httpx2:HTTP Request: POST https://api.o98k.de/v1/responses "HTTP/1.1 200 OK"
 INFO:httpx:HTTP Request: GET http://127.0.0.1:8002/internal/documents/overview?hospital_id=1 "HTTP/1.1 200 OK"
 INFO:httpx:HTTP Request: GET http://127.0.0.1:8002/internal/documents/overview?hospital_id=1 "HTTP/1.1 200 OK"
 INFO:httpx:HTTP Request: GET http://127.0.0.1:8002/internal/documents/overview?hospital_id=1 "HTTP/1.1 200 OK"
 INFO:httpx:HTTP Request: GET http://127.0.0.1:8002/internal/documents/overview?hospital_id=1 "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET http://127.0.0.1:8002/internal/documents/overview?hospital_id=1 "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: GET http://127.0.0.1:8002/internal/documents/overview?hospital_id=1 "HTTP/1.1 200 OK"
+INFO:httpx2:HTTP Request: POST https://api.o98k.de/v1/responses "HTTP/1.1 200 OK"
+INFO:httpx2:HTTP Request: POST https://api.o98k.de/v1/responses "HTTP/1.1 200 OK"
+INFO:httpx2:HTTP Request: POST https://api.o98k.de/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx2:HTTP Request: POST https://api.o98k.de/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx2:HTTP Request: POST https://api.o98k.de/v1/responses "HTTP/1.1 200 OK"

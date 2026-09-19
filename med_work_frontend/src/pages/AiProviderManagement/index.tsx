@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { App as AntApp, Alert, Button, Empty, Popconfirm, Tag, Tooltip, Typography } from 'antd';
+import { App as AntApp, Alert, Button, Empty, Popconfirm, Popover, Tag, Tooltip, Typography } from 'antd';
 import {
   CheckCircleFilled,
   CloudUploadOutlined,
@@ -41,6 +41,7 @@ export default function AiProviderManagement() {
   const activateProvider = useAiProviderStore((state) => state.activateProvider);
   const removeProvider = useAiProviderStore((state) => state.removeProvider);
   const probeProvider = useAiProviderStore((state) => state.probeProvider);
+  const clearProbe = useAiProviderStore((state) => state.clearProbe);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<AiProviderItem | null>(null);
@@ -215,7 +216,28 @@ export default function AiProviderManagement() {
                   </div>
                   <div>
                     <dt>候选模型</dt>
-                    <dd>{item.cached_models.length > 0 ? `${item.cached_models.length} 个` : '—'}</dd>
+                    <dd>
+                      {item.cached_models.length > 0 ? (
+                        <Popover
+                          trigger="click"
+                          placement="left"
+                          title={`${item.display_name} · ${item.cached_models.length} 个候选模型`}
+                          content={
+                            <ul className="aip-model-list">
+                              {item.cached_models.map((model) => (
+                                <li key={model}>{model}</li>
+                              ))}
+                            </ul>
+                          }
+                        >
+                          <Typography.Link role="button">
+                            {item.cached_models.length} 个 · 点击查看
+                          </Typography.Link>
+                        </Popover>
+                      ) : (
+                        '—'
+                      )}
+                    </dd>
                   </div>
                 </dl>
                 {probe ? (
@@ -223,6 +245,8 @@ export default function AiProviderManagement() {
                     className="aip-probe"
                     type={probe.ok ? 'success' : 'error'}
                     showIcon
+                    closable
+                    onClose={() => clearProbe(item.provider)}
                     icon={probe.ok ? <ThunderboltOutlined /> : <ReloadOutlined />}
                     message={
                       probe.ok

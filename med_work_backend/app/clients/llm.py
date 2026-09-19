@@ -77,9 +77,62 @@ def to_langchain_messages(req: ChatRequest) -> list[BaseMessage]:
     return msgs
 
 
+_REASONING_BLOCK_TYPES = ("reasoning", "thinking", "reasoning_content")
+
+
+def content_to_text(content: Any) -> str:
+    """把消息 content 规整为纯文本（不含推理内容）。
+
+    部分 OpenAI 兼容网关会把内容包装成 multimodal 块列表，例如
+    ``[{"type": "text", "text": "你好", "index": 0}]``（甚至带 phase 等额外字段）；
+    此时直接用 str() 会得到 Python 字面量并原样渲染给用户，因此按块抽取 text 字段。
+    推理块（reasoning/thinking）不在此列，见 reasoning_to_text。
+    """
+    if isinstance(content, str):
+        return content
+    if content is None:
+        return ""
+    if isinstance(content, list):
+        parts: list[str] = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict):
+                if block.get("type") in _REASONING_BLOCK_TYPES:
+                    continue
+                text = block.get("text")
+                if isinstance(text, str):
+                    parts.append(text)
+        return "".join(parts)
+    return str(content)
+
+
+def reasoning_to_text(content: Any) -> str:
+    """从消息 content 中抽取推理（思考）文本。
+
+    Responses API 的推理摘要形如
+    ``[{"type": "reasoning", "summary": [{"type": "summary_text", "text": "..."}]}]``；
+    部分网关也会用 ``{"type": "thinking", "text": "..."}``。无推理内容时返回空串。
+    """
+    if not isinstance(content, list):
+        return ""
+    parts: list[str] = []
+    for block in content:
+        if not isinstance(block, dict) or block.get("type") not in _REASONING_BLOCK_TYPES:
+            continue
+        summary = block.get("summary")
+        if isinstance(summary, list):
+            for s in summary:
+                if isinstance(s, dict) and isinstance(s.get("text"), str):
+                    parts.append(s["text"])
+        if isinstance(block.get("text"), str):
+            parts.append(block["text"])
+    return "".join(parts)
+
+
 def convert_message(msg: BaseMessage) -> ChatMessage:
     role = "assistant" if isinstance(msg, AIMessage) else "user"
-    return ChatMessage(role=role, content=msg.content if isinstance(msg.content, str) else str(msg.content))
+    return ChatMessage(role=role, content=content_to_text(msg.content))
 
 
 async def chat_once(
@@ -89,7 +142,7 @@ async def chat_once(
     llm = get_llm(temperature=req.temperature, provider=provider)
     messages = to_langchain_messages(req)
     resp = await llm.ainvoke(messages)
-    text = resp.content if isinstance(resp.content, str) else str(resp.content)
+    text = content_to_text(resp.content)
     usage = getattr(resp, "usage_metadata", None)
     return text, usage
 
@@ -99,7 +152,7 @@ async def chat_stream(req: ChatRequest, provider: AIProviderConfig | None = None
     llm = get_llm(temperature=req.temperature, provider=provider)
     messages = to_langchain_messages(req)
     async for chunk in llm.astream(messages):
-        piece = chunk.content if isinstance(chunk.content, str) else str(chunk.content)
+        piece = content_to_text(chunk.content)
         if piece:
             yield piece
 
@@ -214,7 +267,7 @@ async def parse_record_text(
             HumanMessage(content=f"病历资料文本：\n{text[:12000]}"),
         ]
     )
-    raw = resp.content if isinstance(resp.content, str) else str(resp.content)
+    raw = content_to_text(resp.content)
     return _normalize_record_fields(_extract_json(raw))
 
 
@@ -321,7 +374,7 @@ async def analyze_record(
     resp = await llm.ainvoke(
         [SystemMessage(content=system), HumanMessage(content=f"{guide}\n\n病历原文：\n{text}")]
     )
-    raw = resp.content if isinstance(resp.content, str) else str(resp.content)
+    raw = content_to_text(resp.content)
     data = _extract_json(raw)
     data = _attach_document_ids(data, knowledge)
     return {"result": data, "model": model}

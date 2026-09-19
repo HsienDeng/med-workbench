@@ -111,6 +111,10 @@ export default function BasicLayout({
       key: item.key,
       icon: item.icon,
       className: item.key === 'newConversation' ? 'app-sidebar-new-chat' : undefined,
+      style:
+        item.key === 'newConversation'
+          ? { background: colors.primary, color: '#fff' }
+          : undefined,
       label: (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           {item.label}

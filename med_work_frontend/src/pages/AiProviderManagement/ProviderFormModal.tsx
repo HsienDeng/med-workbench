@@ -1,5 +1,7 @@
-import { useEffect, useMemo } from 'react';
-import { App as AntApp, AutoComplete, Form, Input, Modal, Radio } from 'antd';
+import { useEffect, useState } from 'react';
+import { App as AntApp, AutoComplete, Button, Form, Input, Modal, Radio, Space } from 'antd';
+import { CloudDownloadOutlined } from '@ant-design/icons';
+import { fetchAiProviderModels, fetchAiProviderModelsDraft } from '@/services/api';
 import { useAiProviderStore } from '@/stores/aiProviders';
 import type { AiProviderItem, AiProtocol } from '@/types';
 
@@ -38,10 +40,8 @@ export default function ProviderFormModal({ open, initial, onClose }: ProviderFo
 
   const isEdit = initial !== null;
   const protocol = Form.useWatch('protocol', form) ?? 'openai';
-  const modelOptions = useMemo(
-    () => (initial?.cached_models ?? []).map((model) => ({ value: model })),
-    [initial],
-  );
+  const [modelOptions, setModelOptions] = useState<{ value: string }[]>([]);
+  const [fetchingModels, setFetchingModels] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -57,7 +57,36 @@ export default function ProviderFormModal({ open, initial, onClose }: ProviderFo
     } else {
       form.resetFields();
     }
+    setModelOptions((initial?.cached_models ?? []).map((model) => ({ value: model })));
   }, [open, initial, form]);
+
+  const handleFetchModels = async () => {
+    const values = form.getFieldsValue(['protocol', 'base_url', 'api_key', 'default_model']);
+    setFetchingModels(true);
+    try {
+      // 编辑且 Key 留空 → 未改动凭据，用已保存配置拉取（还会回写 cached_models）；
+      // 其余情况（新建 / 填了新 Key）→ 按表单草稿临时探测
+      const useSaved = isEdit && initial !== null && !values.api_key;
+      const result = useSaved && initial
+        ? await fetchAiProviderModels(initial.provider)
+        : await fetchAiProviderModelsDraft({
+            protocol: values.protocol,
+            base_url: values.base_url,
+            api_key: values.api_key ?? '',
+            default_model: values.default_model ?? '',
+          });
+      if (result.ok && result.models.length > 0) {
+        setModelOptions(result.models.map((model) => ({ value: model })));
+        message.success(`获取到 ${result.models.length} 个模型，请选择默认模型`);
+      } else {
+        message.warning(result.error || '未拉取到模型列表，请检查地址与 API Key');
+      }
+    } catch {
+      // 全局层已提示
+    } finally {
+      setFetchingModels(false);
+    }
+  };
 
   const handleOk = async () => {
     const values = await form.validateFields();
@@ -142,15 +171,24 @@ export default function ProviderFormModal({ open, initial, onClose }: ProviderFo
         <Form.Item
           name="default_model"
           label="默认模型"
-          extra="可先「获取模型」拉取候选，也可直接输入"
+          extra="点击右侧「获取模型」拉取上游可用模型，也可直接输入"
         >
-          <AutoComplete
-            placeholder={protocol === 'anthropic' ? 'claude-sonnet-4-5' : 'deepseek-chat'}
-            options={modelOptions}
-            filterOption={(input, option) =>
-              (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-          />
+          <Space.Compact style={{ width: '100%' }}>
+            <AutoComplete
+              placeholder={protocol === 'anthropic' ? 'claude-sonnet-4-5' : 'deepseek-chat'}
+              options={modelOptions}
+              filterOption={(input, option) =>
+                (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+            />
+            <Button
+              icon={<CloudDownloadOutlined />}
+              loading={fetchingModels}
+              onClick={() => void handleFetchModels()}
+            >
+              获取模型
+            </Button>
+          </Space.Compact>
         </Form.Item>
       </Form>
     </Modal>

@@ -1,6 +1,7 @@
 import type {
   ActiveAIProviderResponse,
   AIConnectionResponse,
+  AiProtocol,
   AiProviderCreateInput,
   AiProviderItem,
   AiProviderProbeResult,
@@ -269,6 +270,19 @@ export function fetchAiProviderModels(provider: string): Promise<AiProviderProbe
   return request<AiProviderProbeResult>(
     `/api/ai/providers/${encodeURIComponent(provider)}/models`,
   );
+}
+
+/** 按表单草稿（协议/地址/Key）临时拉取模型列表，不落库；用于新建或改了配置未保存时。 */
+export function fetchAiProviderModelsDraft(input: {
+  protocol: AiProtocol;
+  base_url: string;
+  api_key: string;
+  default_model?: string;
+}): Promise<AiProviderProbeResult> {
+  return request<AiProviderProbeResult>('/api/ai/providers/fetch-models', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
 }
 
 export function getCurrentUser(): Promise<UserResponse> {

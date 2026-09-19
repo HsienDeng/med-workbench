@@ -18,6 +18,8 @@ export interface XMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  /** 推理（思考）过程，仅模型/网关支持时有值；不持久化，刷新后不保留 */
+  thinking?: string;
   status?: 'loading' | 'done' | 'error' | 'stopped';
   citations?: ChatCitation[];
 }
@@ -25,6 +27,7 @@ export interface XMessage {
 export interface XAgentCallbacks {
   signal?: AbortSignal;
   onUpdate: (full: string) => void;
+  onThinking?: (full: string) => void;
   onCitations?: (list: ChatCitation[]) => void;
   onSuccess: () => void;
   onError: (message: string) => void;
@@ -86,6 +89,9 @@ export function useXChat(config: UseXChatConfig): UseXChatResult {
             if (!isCurrent()) return;
             latestContent = full;
             setMessages((prev) => patchAssistantById(prev, botMsg.id, { content: full }));
+          },
+          onThinking: (full) => {
+            if (isCurrent()) setMessages((prev) => patchAssistantById(prev, botMsg.id, { thinking: full }));
           },
           onCitations: (list) => {
             if (isCurrent()) setMessages((prev) => patchAssistantById(prev, botMsg.id, { citations: list }));

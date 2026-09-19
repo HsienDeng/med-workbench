@@ -33,6 +33,7 @@ interface AiProviderStore {
   removeProvider: (provider: string) => Promise<void>;
   activateProvider: (provider: string) => Promise<void>;
   probeProvider: (provider: string, mode: 'test' | 'models') => Promise<ProbeState | null>;
+  clearProbe: (provider: string) => void;
 }
 
 export const useAiProviderStore = create<AiProviderStore>((set, get) => ({
@@ -116,5 +117,11 @@ export const useAiProviderStore = create<AiProviderStore>((set, get) => ({
     } finally {
       set({ probing: null });
     }
+  },
+
+  clearProbe: (provider) => {
+    const probes = { ...get().probes };
+    delete probes[provider];
+    set({ probes });
   },
 }));

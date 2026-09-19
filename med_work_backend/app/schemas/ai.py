@@ -66,6 +66,15 @@ class AIProviderItem(BaseModel):
     api_key_last4: str | None = None
 
 
+class AIProviderFetchModelsRequest(BaseModel):
+    """按表单草稿拉取模型列表（未保存前的临时探测，不落库）。"""
+
+    protocol: AiProtocol = "openai"
+    base_url: str = Field(pattern=r"^https?://", description="API 基础地址")
+    api_key: str = Field(default="", max_length=512)
+    default_model: str = Field(default="", max_length=128)
+
+
 class AIProviderProbeResult(BaseModel):
     """测速 / 模型列表拉取结果。"""
 

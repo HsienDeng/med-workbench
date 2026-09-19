@@ -1,7 +1,8 @@
 /* AI 服务与 API Key 管理页 */
 
 .aip-page {
-  max-width: 1280px;
+  width: 100%;
+  max-width: none;
 }
 
 .aip-hero {
@@ -162,4 +163,27 @@
   background: var(--color-bg-secondary, #f5f7fb);
   border-radius: 10px;
   text-align: center;
+}
+
+/* 候选模型弹层列表 */
+.aip-model-list {
+  margin: 0;
+  padding: 0;
+  min-width: 240px;
+  max-height: 280px;
+  overflow-y: auto;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.aip-model-list li {
+  padding: 4px 8px;
+  font-size: 13px;
+  font-family: var(--font-family-code, monospace);
+  color: var(--color-text, #1a1f2c);
+  background: var(--color-bg-secondary, #f5f7fb);
+  border-radius: 6px;
+  word-break: break-all;
 }

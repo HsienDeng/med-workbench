@@ -17,6 +17,7 @@ from app.models import RbacUser
 from app.schemas.ai import (
     AIConnection,
     AIProviderCreate,
+    AIProviderFetchModelsRequest,
     AIProviderItem,
     AIProviderProbeResult,
     AIProviderUpdate,
@@ -276,6 +277,24 @@ async def fetch_provider_models(
         row.cached_models = result.models
         db.commit()
     return result
+
+
+@router.post("/ai/providers/fetch-models", response_model=AIProviderProbeResult)
+async def fetch_models_by_draft(
+    payload: AIProviderFetchModelsRequest,
+    _admin: RbacUser = Depends(require_hospital_admin),
+) -> AIProviderProbeResult:
+    """按表单草稿（协议 / 地址 / Key）临时拉取模型列表，不落库。
+
+    用于新建供应商、或编辑时修改了地址 / Key 尚未保存的场景。
+    """
+    result = await probe_provider(
+        payload.protocol,
+        payload.base_url.strip(),
+        payload.api_key.strip(),
+        payload.default_model.strip(),
+    )
+    return AIProviderProbeResult(provider="", **result)
 
 
 # ---------- 旧端点（保留兼容） ----------

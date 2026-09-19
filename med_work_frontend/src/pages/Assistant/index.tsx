@@ -141,6 +141,24 @@ function CitationList({ citations }: { citations: NonNullable<XMessage['citation
   );
 }
 
+/** 助手消息上方的推理过程折叠面板（模型/网关支持时展示，生成中自动展开） */
+function ThinkingPanel({ thinking, active }: { thinking: string; active: boolean }) {
+  return (
+    <details className="assistant-thinking" open={active}>
+      <summary>
+        <BulbOutlined aria-hidden="true" />
+        <span className="assistant-thinking-title">思考过程</span>
+        {active ? (
+          <span className="assistant-thinking-live">
+            <LoadingOutlined /> 思考中
+          </span>
+        ) : null}
+      </summary>
+      <div className="assistant-thinking-body">{thinking}</div>
+    </details>
+  );
+}
+
 const roles: GetProp<typeof Bubble.List, 'role'> = {
   user: { placement: 'end', avatar: <Avatar size={28} icon={<UserOutlined />} style={{ background: colors.primary }} /> },
   assistant: { placement: 'start', avatar: <Avatar size={28} src={assistantAvatar} /> },
@@ -154,6 +172,25 @@ const toXMessage = (m: ChatMessageInput): XMessage => ({
   status: m.role === 'assistant' ? 'done' : undefined,
   citations: m.citations ?? undefined,
 });
+
+const CJK_CHAR = '[\\u4e00-\\u9fff\\u3000-\\u303f\\uff01-\\uff5e]';
+
+/**
+ * 去掉中文字符之间的单个换行（Markdown 软换行会渲染成空格，导致
+ * 「你 好 ！」式的字间空白）。代码块（``` 围栏）内的内容保持原样。
+ */
+const squashCjkSoftBreaks = (raw: string): string =>
+  raw
+    .split(/(```[\s\S]*?(?:```|$))/g)
+    .map((part, index) =>
+      index % 2 === 1
+        ? part
+        : part.replace(
+            new RegExp(`(${CJK_CHAR})[ \\t]*\\r?\\n(?=${CJK_CHAR})`, 'g'),
+            '$1',
+          ),
+    )
+    .join('');
 
 export default function Assistant() {
   const { message } = AntApp.useApp();
@@ -200,6 +237,7 @@ export default function Assistant() {
             model: modelRef.current ?? undefined,
             signal: cb.signal,
             onChunk: cb.onUpdate,
+            onThinking: cb.onThinking,
             onCitations: cb.onCitations,
             onDone: cb.onSuccess,
             onError: cb.onError,
@@ -251,7 +289,7 @@ export default function Assistant() {
   const modelMenuItems = useMemo(
     () =>
       aiConnections.flatMap((conn) =>
-        conn.models.map((model) => ({ key: model, label: `${conn.name} / ${model}` })),
+        conn.models.map((model) => ({ key: model, label: model })),
       ),
     [aiConnections],
   );
@@ -427,7 +465,7 @@ export default function Assistant() {
   };
 
   const renderContent = (m: XMessage) => {
-    if (m.role === 'assistant' && m.status === 'loading' && !m.content) {
+    if (m.role === 'assistant' && m.status === 'loading' && !m.content && !m.thinking) {
       return (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: colors.textMuted }}>
           <LoadingOutlined /> 正在思考…
@@ -440,9 +478,10 @@ export default function Assistant() {
     if (m.role === 'user') return <span style={{ whiteSpace: 'pre-wrap' }}>{m.content}</span>;
     return (
       <div>
+        {m.thinking ? <ThinkingPanel thinking={m.thinking} active={m.status === 'loading'} /> : null}
         {m.content ? (
           <XMarkdown
-            content={m.content}
+            content={squashCjkSoftBreaks(m.content)}
             className="assistant-markdown x-markdown-light"
             escapeRawHtml
             openLinksInNewTab
@@ -570,9 +609,7 @@ export default function Assistant() {
                           style={{ background: currentModel?.color ?? MODEL_DOT_COLORS[0] }}
                         />
                         <span className="assistant-model-name">
-                          {currentModel
-                            ? `${currentModel.provider} / ${currentModel.model}`
-                            : '选择模型'}
+                          {currentModel ? currentModel.model : '选择模型'}
                         </span>
                         <DownOutlined className="assistant-tool-pill-caret" />
                       </button>

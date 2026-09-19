@@ -14,3 +14,39 @@ Error: [safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":2235,"threshold
 [2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
 [2m12:30:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/ProviderFormModal.tsx[22m
 [2m12:30:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/ProviderFormModal.tsx[22m
+[2m12:37:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/index.css[22m
+[2m12:41:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/pages/Retrieval/index.tsx, /src/pages/Dashboard/index.tsx, /src/pages/Documents/components/ImaBrowser.tsx, /src/pages/Documents/index.tsx, /src/pages/Documents/components/DocOverview.tsx, /src/pages/Documents/components/UploadTasksModal/index.tsx, /src/pages/Knowledge/components/UploadDocumentModal/index.tsx, /src/pages/Documents/components/LocalDocumentTable.tsx, /src/pages/Assistant/index.tsx, /src/pages/Documents/components/ImaFolderTree.tsx, /src/pages/Analysis/components/EvidenceCard.tsx, /src/pages/Documents/components/LocalDocumentDetailDrawer.tsx, /src/pages/Documents/components/ImaFileList.tsx, /src/pages/Documents/components/ImaImportModal.tsx, /src/pages/Audit/index.tsx, /src/pages/Analysis/index.tsx, /src/pages/Permissions/index.tsx, /src/pages/Login/index.tsx, /src/pages/Patients/index.tsx, /src/pages/WxGroups/index.tsx, /src/pages/Patients/PatientDetailView.tsx, /src/pages/Accounts/index.tsx, /src/pages/Patients/components/ReportExportModal.tsx, /src/pages/Patients/components/AnalysisEvolution.tsx, /src/pages/AiProviderManagement/index.tsx, /src/pages/AiProviderManagement/ProviderFormModal.tsx, /src/pages/Dictionaries/index.tsx, /src/layouts/BasicLayout/components/NotificationBell.tsx, /src/pages/Patients/components/RecordAiArchivePanel.tsx[22m
+[2m12:41:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/pages/Retrieval/index.tsx, /src/pages/Dashboard/index.tsx, /src/pages/Documents/components/ImaBrowser.tsx, /src/pages/Documents/index.tsx, /src/pages/Documents/components/DocOverview.tsx, /src/pages/Documents/components/UploadTasksModal/index.tsx, /src/pages/Knowledge/components/UploadDocumentModal/index.tsx, /src/pages/Documents/components/LocalDocumentTable.tsx, /src/pages/Assistant/index.tsx, /src/pages/Documents/components/ImaFolderTree.tsx, /src/pages/Analysis/components/EvidenceCard.tsx, /src/pages/Documents/components/LocalDocumentDetailDrawer.tsx, /src/pages/Documents/components/ImaFileList.tsx, /src/pages/Documents/components/ImaImportModal.tsx, /src/pages/Audit/index.tsx, /src/pages/Analysis/index.tsx, /src/pages/Permissions/index.tsx, /src/pages/Login/index.tsx, /src/pages/Patients/index.tsx, /src/pages/WxGroups/index.tsx, /src/pages/Patients/PatientDetailView.tsx, /src/pages/Accounts/index.tsx, /src/pages/Patients/components/ReportExportModal.tsx, /src/pages/Patients/components/AnalysisEvolution.tsx, /src/pages/AiProviderManagement/index.tsx, /src/pages/AiProviderManagement/ProviderFormModal.tsx, /src/pages/Dictionaries/index.tsx, /src/layouts/BasicLayout/components/NotificationBell.tsx, /src/pages/Patients/components/RecordAiArchivePanel.tsx[22m
+[2m12:41:43[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/ProviderFormModal.tsx[22m
+[2m12:41:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/ProviderFormModal.tsx[22m
+[2m12:41:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/ProviderFormModal.tsx[22m
+[2m12:42:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/ProviderFormModal.tsx[22m
+[2m12:45:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/index.tsx[22m
+[2m12:45:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/index.tsx[22m
+[2m12:45:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/index.css[22m
+[2m12:46:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/index.tsx, /src/pages/AiProviderManagement/ProviderFormModal.tsx[22m
+[2m12:46:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/index.tsx, /src/pages/AiProviderManagement/ProviderFormModal.tsx[22m
+[2m12:46:16[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/index.tsx[22m
+[2m12:46:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AiProviderManagement/index.tsx[22m
+[2m12:47:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BasicLayout/index.css[22m
+[2m12:47:47[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BasicLayout/index.tsx[22m
+[2m12:52:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m13:24:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m13:28:40[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/layouts/BasicLayout/index.tsx, /src/pages/Assistant/index.tsx[22m
+[2m14:16:19[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/layouts/BasicLayout/index.tsx, /src/pages/Assistant/index.tsx[22m
+[2m14:16:27[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m14:16:47[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m14:17:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m14:17:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m14:17:18[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m14:17:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m14:18:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m14:18:59[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m14:20:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m14:20:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m14:20:29[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m14:27:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m14:37:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m14:37:47[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.css[22m
+[2m14:41:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m14:41:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m

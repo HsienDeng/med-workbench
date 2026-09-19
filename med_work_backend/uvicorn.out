@@ -307,3 +307,16 @@ INFO:     127.0.0.1:52032 - "GET /api/notifications?page=1&page_size=8&unread_on
 INFO:     127.0.0.1:49423 - "GET /api/notifications?page=1&page_size=8&unread_only=false HTTP/1.1" 200 OK
 INFO:     127.0.0.1:49844 - "GET /api/notifications?page=1&page_size=8&unread_only=false HTTP/1.1" 200 OK
 INFO:     127.0.0.1:53979 - "GET /api/notifications?page=1&page_size=8&unread_only=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54659 - "GET /api/notifications?page=1&page_size=8&unread_only=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50495 - "GET /api/notifications?page=1&page_size=8&unread_only=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55587 - "GET /api/notifications?page=1&page_size=8&unread_only=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53774 - "GET /api/ai/connections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53773 - "GET /api/notifications?page=1&page_size=8&unread_only=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53778 - "GET /api/auth/menus HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59048 - "GET /api/ai/connections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53777 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55595 - "GET /api/notifications?page=1&page_size=8&unread_only=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54644 - "GET /api/chat/conversations/26 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54772 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53988 - "GET /api/auth/menus HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60447 - "PUT /api/chat/conversations/26 HTTP/1.1" 200 OK

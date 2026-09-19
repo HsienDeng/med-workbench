@@ -176,20 +176,30 @@ const toXMessage = (m: ChatMessageInput): XMessage => ({
 const CJK_CHAR = '[\\u4e00-\\u9fff\\u3000-\\u303f\\uff01-\\uff5e]';
 
 /**
- * 去掉中文字符之间的单个换行（Markdown 软换行会渲染成空格，导致
- * 「你 好 ！」式的字间空白）。代码块（``` 围栏）内的内容保持原样。
+ * 归一化模型输出后再交给 XMarkdown 渲染。
+ *
+ * 部分模型/网关会在中文 token 之间带出空格、把换行压成空格，导致：
+ * 1. 「你 好 ！」式的字间空白；
+ * 2. Markdown 列表（"- "）、加粗（**）因失去换行/行首而解析失效，原样显示。
+ *
+ * 处理（``` 围栏内的代码块保持原样）：
+ * - 「句末标点 + 空格 + "- "」还原为换行的列表项；
+ * - 去掉中文字符之间的空格与换行（中文不需要词间空格）。
  */
-const squashCjkSoftBreaks = (raw: string): string =>
+const normalizeModelText = (raw: string): string =>
   raw
     .split(/(```[\s\S]*?(?:```|$))/g)
-    .map((part, index) =>
-      index % 2 === 1
-        ? part
-        : part.replace(
-            new RegExp(`(${CJK_CHAR})[ \\t]*\\r?\\n(?=${CJK_CHAR})`, 'g'),
-            '$1',
-          ),
-    )
+    .map((part, index) => {
+      if (index % 2 === 1) return part;
+      return part
+        // 「。／；／！／： + 空白 + - 」→ 换行，恢复被压平的列表
+        .replace(new RegExp(`([。；！：])[ \\t\\r\\n]+-(?=[ \\t*\\u4e00-\\u9fff])`, 'g'), '$1\n- ')
+        // 中文（含全角标点）之间的空格/换行一律去掉
+        .replace(
+          new RegExp(`(?<=${CJK_CHAR})[ \\t\\r\\n]+(?=${CJK_CHAR})`, 'g'),
+          '',
+        );
+    })
     .join('');
 
 export default function Assistant() {
@@ -481,7 +491,7 @@ export default function Assistant() {
         {m.thinking ? <ThinkingPanel thinking={m.thinking} active={m.status === 'loading'} /> : null}
         {m.content ? (
           <XMarkdown
-            content={squashCjkSoftBreaks(m.content)}
+            content={normalizeModelText(m.content)}
             className="assistant-markdown x-markdown-light"
             escapeRawHtml
             openLinksInNewTab

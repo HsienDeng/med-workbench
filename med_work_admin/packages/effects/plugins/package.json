@@ -1,0 +1,71 @@
+{
+  "name": "@vben/plugins",
+  "version": "5.7.0",
+  "homepage": "https://github.com/vbenjs/vue-vben-admin",
+  "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vbenjs/vue-vben-admin.git",
+    "directory": "packages/effects/plugins"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./echarts": {
+      "types": "./src/echarts/index.ts",
+      "default": "./src/echarts/index.ts"
+    },
+    "./tiptap": {
+      "types": "./src/tiptap/index.ts",
+      "default": "./src/tiptap/index.ts"
+    },
+    "./vxe-table": {
+      "types": "./src/vxe-table/index.ts",
+      "default": "./src/vxe-table/index.ts"
+    },
+    "./motion": {
+      "types": "./src/motion/index.ts",
+      "default": "./src/motion/index.ts"
+    }
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.23.5",
+    "@tiptap/extension-document": "^3.23.5",
+    "@tiptap/extension-highlight": "^3.23.5",
+    "@tiptap/extension-image": "^3.23.5",
+    "@tiptap/extension-link": "^3.23.5",
+    "@tiptap/extension-placeholder": "^3.23.5",
+    "@tiptap/extension-text-align": "^3.23.5",
+    "@tiptap/extension-text-style": "^3.23.5",
+    "@tiptap/extension-underline": "^3.23.5",
+    "@tiptap/pm": "^3.23.5",
+    "@tiptap/starter-kit": "^3.23.5",
+    "@tiptap/vue-3": "^3.23.5",
+    "@vben-core/design": "workspace:*",
+    "@vben-core/form-ui": "workspace:*",
+    "@vben-core/popup-ui": "workspace:*",
+    "@vben-core/shadcn-ui": "workspace:*",
+    "@vben-core/shared": "workspace:*",
+    "@vben/hooks": "workspace:*",
+    "@vben/icons": "workspace:*",
+    "@vben/locales": "workspace:*",
+    "@vben/preferences": "workspace:*",
+    "@vben/types": "workspace:*",
+    "@vben/utils": "workspace:*",
+    "@vueuse/core": "^14.3.0",
+    "@vueuse/motion": "^3.0.3",
+    "echarts": "^6.1.0",
+    "vue": "^3.5.34",
+    "vxe-pc-ui": "^4.14.16",
+    "vxe-table": "^4.18.13"
+  },
+  "scripts": {},
+  "devDependencies": {}
+}

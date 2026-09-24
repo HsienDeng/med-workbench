@@ -78,3 +78,4 @@ Error: [safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":2235,"threshold
 [2m20:59:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx[22m
 [2m21:10:28[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
 [2m21:10:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Assistant/index.tsx[22m
+[2m10:25:27[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Audit/index.tsx, /src/pages/Dashboard/index.tsx, /src/pages/Analysis/index.tsx, /src/pages/Analysis/components/ConclusionCard.tsx, /src/pages/Patients/components/AnalysisEvolution.tsx, /src/pages/Patients/components/PatientTimeline.tsx, /src/pages/Patients/components/RecordAiArchivePanel.tsx[22m

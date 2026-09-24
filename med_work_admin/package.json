@@ -1,0 +1,78 @@
+{
+  "name": "my-vben-admin",
+  "version": "0.0.0",
+  "homepage": "https://vben.pro",
+  "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vbenjs/vue-vben-admin.git",
+    "directory": "apps/web-ele"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "vben",
+    "email": "ann.vben@gmail.com",
+    "url": "https://github.com/anncwb"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "pnpm vite build --mode production",
+    "build:analyze": "pnpm vite build --mode analyze",
+    "dev": "pnpm vite --mode development",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit --skipLibCheck",
+    "postinstall": "pnpm -r run stub --if-present"
+  },
+  "imports": {
+    "#/*": "./src/*"
+  },
+
+  
+  "dependencies": {
+    "@element-plus/icons-vue": "2.3.2",
+    "@types/markdown-it": "^14.2.0",
+    "@vben/access": "workspace:*",
+    "@vben/common-ui": "workspace:*",
+    "@vben/constants": "workspace:*",
+    "@vben/hooks": "workspace:*",
+    "@vben/icons": "workspace:*",
+    "@vben/layouts": "workspace:*",
+    "@vben/locales": "workspace:*",
+    "@vben/plugins": "workspace:*",
+    "@vben/preferences": "workspace:*",
+    "@vben/request": "workspace:*",
+    "@vben/stores": "workspace:*",
+    "@vben/styles": "workspace:*",
+    "@vben/types": "workspace:*",
+    "@vben/utils": "workspace:*",
+    "@vueuse/core": "^14.3.0",
+    "dayjs": "^1.11.20",
+    "element-plus": "^2.14.0",
+    "highlight.js": "^11.12.0",
+    "markdown-it": "^15.0.2",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.34",
+    "vue-router": "^5.0.7"
+  },
+  "devDependencies": {
+    "@tsdown/css": "^0.22.0",
+    "@types/node": "^25.9.1",
+    "@vben/tailwind-config": "workspace:*",
+    "@vben/tsconfig": "workspace:*",
+    "@vben/vite-config": "workspace:*",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vitejs/plugin-vue-jsx": "^5.1.5",
+    "tailwindcss": "^4.3.0",
+    "tsdown": "^0.22.0",
+    "typescript": "^6.0.3",
+    "unplugin-element-plus": "^0.11.2",
+    "vite": "^8.0.13",
+    "vue-tsc": "^3.3.1"
+  },
+  "private": true,
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": "^22.18.0 || ^24.0.0",
+    "pnpm": ">=10.0.0"
+  }
+}

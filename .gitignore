@@ -18,6 +18,32 @@ med_work_frontend/dist/
 med_work_frontend/*.tsbuildinfo
 med_work_frontend/*.d.ts
 
+# med_work_admin（Vben Admin monorepo，pnpm workspace）
+# 依赖：根与各子包（internal/*、packages/*）都会生成 node_modules
+med_work_admin/node_modules/
+med_work_admin/**/node_modules/
+# 构建产物：应用产物 + 各子包 tsdown 打包输出（含 packages/@core/base/shared/dist）
+med_work_admin/dist/
+med_work_admin/**/dist/
+med_work_admin/*.tsbuildinfo
+med_work_admin/**/*.tsbuildinfo
+med_work_admin/*.d.ts
+# 本地手工打包上传的 zip（如 dist.zip）
+med_work_admin/*.zip
+med_work_admin/**/*.zip
+# 构建/测试缓存
+med_work_admin/.turbo/
+med_work_admin/**/.turbo/
+med_work_admin/**/.vite/
+med_work_admin/**/vite.config.ts.timestamp-*
+med_work_admin/**/vite.config.*.timestamp-*
+med_work_admin/coverage/
+med_work_admin/**/coverage/
+med_work_admin/docs/.vitepress/cache/
+med_work_admin/docs/.vitepress/dist/
+med_work_admin/.eslintcache
+med_work_admin/.stylelintcache
+
 # Legacy duplicate generated during repository migration
 med_work_backend/frontend/
 
@@ -36,6 +62,9 @@ skills-lock.json
 med_work_frontend/.env
 med_work_frontend/.env.local
 med_work_frontend/.env.*.local
+med_work_admin/.env
+med_work_admin/.env.local
+med_work_admin/.env.*.local
 
 # RAG 服务：.env 含真实 API 密钥与数据库密码，仅提交 .env.example
 med_rag_service/.env
@@ -49,12 +78,19 @@ med_rag_service/data/uploads/
 
 # 运行时日志（补充上方的 logs/*.log 规则）
 med_work_frontend/_vite*.log
+med_work_admin/_vite*.log
+med_work_admin/*.log
+med_work_admin/**/*.log
 
 # IDE / 本地工具产物
 .idea/
 .codex/
 .codebuddy/
 .vscode/
+
+# 操作系统垃圾文件
+.DS_Store
+Thumbs.db
 
 # 服务器部署打包产物（本地手工上传用，不提交）
 /*.zip
